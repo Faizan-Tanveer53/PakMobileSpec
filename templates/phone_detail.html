@@ -80,32 +80,59 @@
     <div class="detail-top-card">
       <div class="detail-hero-grid">
 
-        <!-- Left: 4 Vertical Thumbnails + Main Dark Studio Stage -->
-        <div class="detail-gallery-wrap">
-          <div class="detail-thumbs-col">
-            <button type="button" class="detail-thumb-item active" onclick="setStageView(this, 'scale(1)')">
-              <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Dual View">
-              <span class="detail-thumb-label">Studio</span>
-            </button>
-            <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.14) translate(-8px, 4px)')">
-              <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Display">
-              <span class="detail-thumb-label">Front</span>
-            </button>
-            <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.16) translate(12px, 6px)')">
-              <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Camera">
-              <span class="detail-thumb-label">Camera</span>
-            </button>
-            <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.06)')">
-              <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Finish">
-              <span class="detail-thumb-label">Finish</span>
-            </button>
+        <!-- Left: Vertical Thumbnails + Main Dark Studio Stage -->
+        <div class="detail-gallery-wrap" style="flex-direction:column;gap:0.85rem;">
+          <div style="display:flex;gap:0.85rem;align-items:stretch;width:100%;">
+            <div class="detail-thumbs-col">
+              {% if phone.gallery and phone.gallery | length > 1 %}
+                {% set thumb_labels = ['Sleek Black', 'Silver', 'All Colors', 'Studio'] %}
+                {% for g_img in phone.gallery[:4] %}
+                <button type="button" class="detail-thumb-item {% if loop.first %}active{% endif %}" onclick="setStageView(this, 'scale(1)', '{{ g_img }}')">
+                  <img src="{{ g_img }}" alt="{{ phone.model_name }} View {{ loop.index }}">
+                  <span class="detail-thumb-label">{{ thumb_labels[loop.index0] if loop.index0 < thumb_labels|length else 'View ' ~ loop.index }}</span>
+                </button>
+                {% endfor %}
+              {% else %}
+                <button type="button" class="detail-thumb-item active" onclick="setStageView(this, 'scale(1)', '{{ phone.image_url }}')">
+                  <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Dual View">
+                  <span class="detail-thumb-label">Studio</span>
+                </button>
+                <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.14) translate(-8px, 4px)', '{{ phone.image_url }}')">
+                  <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Display">
+                  <span class="detail-thumb-label">Front</span>
+                </button>
+                <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.16) translate(12px, 6px)', '{{ phone.image_url }}')">
+                  <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Camera">
+                  <span class="detail-thumb-label">Camera</span>
+                </button>
+                <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.06)', '{{ phone.image_url }}')">
+                  <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Finish">
+                  <span class="detail-thumb-label">Finish</span>
+                </button>
+              {% endif %}
+            </div>
+
+            <div class="detail-main-stage" style="flex:1;">
+              <img src="{{ phone.image_url }}"
+                   id="mainDetailPhoneImg"
+                   alt="{{ phone.brand_name }} {{ phone.model_name }} Official Pakistan Specs & PKR Price">
+            </div>
           </div>
 
-          <div class="detail-main-stage">
-            <img src="{{ phone.image_url }}"
-                 id="mainDetailPhoneImg"
-                 alt="{{ phone.brand_name }} {{ phone.model_name }} Official Pakistan Specs & PKR Price">
+          {% if phone.gallery and phone.gallery | length > 1 %}
+          <div style="display:grid;grid-template-columns:repeat({{ phone.gallery | length }}, 1fr);gap:0.65rem;background:rgba(15,23,42,0.72);border:1px solid rgba(148,163,184,0.18);border-radius:12px;padding:0.65rem;">
+            {% set card_titles = ['1. Sleek Black (Front & Back)', '2. Titanium Silver (Front & Back)', '3. Official Color Lineup'] %}
+            {% for g_img in phone.gallery %}
+            <div onclick="setStageView(document.querySelectorAll('.detail-thumb-item')[{{ loop.index0 }}] || this, 'scale(1)', '{{ g_img }}')"
+                 style="cursor:pointer;background:rgba(255,255,255,0.04);border:1px solid rgba(148,163,184,0.22);border-radius:10px;padding:0.5rem;text-align:center;transition:all 0.2s;">
+              <img src="{{ g_img }}" alt="{{ phone.model_name }} Gallery Photo {{ loop.index }}" style="width:100%;height:96px;object-fit:contain;border-radius:6px;background:#fff;padding:4px;">
+              <div style="font-size:0.72rem;font-weight:700;color:#cbd5e1;margin-top:0.35rem;">
+                {{ card_titles[loop.index0] if loop.index0 < card_titles|length else 'Photo ' ~ loop.index }}
+              </div>
+            </div>
+            {% endfor %}
           </div>
+          {% endif %}
         </div>
 
         <!-- Right: Product Info, PKR Price, Metadata Cards, Status Pills & CTAs -->
@@ -528,11 +555,16 @@
 
 {% block extra_scripts %}
 <script>
-function setStageView(btn, transformVal) {
+function setStageView(btn, transformVal, imgSrc) {
   document.querySelectorAll('.detail-thumb-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const img = document.getElementById('mainDetailPhoneImg');
-  if (img) img.style.transform = transformVal;
+  if (img) {
+    if (imgSrc && img.getAttribute('src') !== imgSrc) {
+      img.setAttribute('src', imgSrc);
+    }
+    img.style.transform = transformVal || 'scale(1)';
+  }
 }
 function scrollToSpecSection(btn, id) {
   document.querySelectorAll('.specs-tab-btn').forEach(b => b.classList.remove('active'));

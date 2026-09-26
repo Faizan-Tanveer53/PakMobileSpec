@@ -936,6 +936,7 @@ async def admin_save_phone(
     is_popular: int = Form(0),
     catalog_status: str = Form("CURRENT"),
     variants_json: str = Form("[]"),
+    gallery_json: Optional[str] = Form(None),
     sale_active: int = Form(0),
     sale_price_pkr: Optional[str] = Form(None),
     sale_start_at: Optional[str] = Form(None),
@@ -1034,8 +1035,14 @@ async def admin_save_phone(
         )
 
     if phone_id:
-        old_row = cursor.execute("SELECT price_pkr FROM phones WHERE id = ?", (phone_id,)).fetchone()
+        old_row = cursor.execute("SELECT price_pkr, gallery_json FROM phones WHERE id = ?", (phone_id,)).fetchone()
         old_price = old_row["price_pkr"] if old_row else price_pkr
+        if gallery_json and gallery_json.strip():
+            clean_gallery_json = gallery_json.strip()
+        elif old_row and old_row["gallery_json"]:
+            clean_gallery_json = old_row["gallery_json"]
+        else:
+            clean_gallery_json = json.dumps([image_url])
 
         cursor.execute(
             """
@@ -1043,7 +1050,7 @@ async def admin_save_phone(
                 brand_id = ?, model_name = ?, official_variant_name = ?, slug = ?,
                 price_pkr = ?, currency = ?, pta_status = ?, availability = ?,
                 is_demo_data = ?, data_status = ?, source_name = ?, source_url = ?,
-                verification_notes = ?, data_source_note = ?, image_url = ?,
+                verification_notes = ?, data_source_note = ?, image_url = ?, gallery_json = ?,
                 release_date = ?, ram_gb = ?, ram_display = ?, storage_gb = ?, storage_display = ?,
                 processor = ?, display_type = ?, display_size_inch = ?, display_resolution = ?,
                 refresh_rate = ?, main_camera = ?, selfie_camera = ?, battery_mah = ?,
@@ -1058,7 +1065,7 @@ async def admin_save_phone(
                 brand_id, model_name, clean_variant_name, clean_slug,
                 price_pkr, clean_currency, pta_status, availability,
                 clean_is_demo, clean_status, clean_source_name, clean_source_url,
-                clean_verif_notes, clean_verif_notes, image_url,
+                clean_verif_notes, clean_verif_notes, image_url, clean_gallery_json,
                 release_date, ram_gb, ram_display, storage_gb, storage_display,
                 processor, display_type, display_size_inch, display_resolution,
                 refresh_rate, main_camera, selfie_camera, battery_mah,
