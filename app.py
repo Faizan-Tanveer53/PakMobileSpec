@@ -1017,7 +1017,7 @@ async def admin_save_phone(
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     clean_last_verified_at = now_str if clean_is_demo == 0 else None
 
-    if not image_url.strip() or image_url.startswith("/static/images/phones/"):
+    if not image_url.strip() or image_url.endswith(".svg"):
         image_url = generate_phone_svg(
             slug=clean_slug,
             brand_name=brand_row["name"],
@@ -1332,7 +1332,7 @@ async def admin_quick_price_update(
         new_source_name = row["source_name"]
         new_last_verified = row["last_verified_at"] if "last_verified_at" in row.keys() else None
 
-    if row["image_url"].startswith("/static/images/phones/"):
+    if row["image_url"].endswith(".svg"):
         generate_phone_svg(
             slug=row["slug"],
             brand_name=row["brand_name"],
@@ -1441,7 +1441,7 @@ async def admin_update_verification_details(
     else:
         clean_catalog_status = row["catalog_status"] if "catalog_status" in row.keys() and row["catalog_status"] else "CURRENT"
 
-    if row["image_url"].startswith("/static/images/phones/"):
+    if row["image_url"].endswith(".svg"):
         generate_phone_svg(
             slug=row["slug"],
             brand_name=row["brand_name"],
@@ -1530,7 +1530,7 @@ async def admin_toggle_verify_status(request: Request, phone_id: int):
     now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     new_last_verified = now_str if new_is_demo == 0 else None
 
-    if row["image_url"].startswith("/static/images/phones/"):
+    if row["image_url"].endswith(".svg"):
         generate_phone_svg(
             slug=row["slug"],
             brand_name=row["brand_name"],
