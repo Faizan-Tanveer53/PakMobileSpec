@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ page_title }}</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="48x48" href="/static/images/favicon-48x48.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=2">
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body style="justify-content:center;align-items:center;padding:1.5rem;">
+  <div style="width:100%;max-width:440px;background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:var(--radius-xl);padding:2.4rem;box-shadow:var(--shadow-lg);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <a href="/" class="brand-logo">
+        <div class="brand-logo-icon">PK</div>
+        <div>
+          PakMobile<span class="highlight">Admin</span>
+          <div style="font-size:0.65rem;color:var(--text-muted);">SECURE MANAGEMENT PORTAL</div>
+        </div>
+      </a>
+      <a href="/" style="font-size:0.8rem;color:var(--accent-primary);font-weight:700;">← Public Site</a>
+    </div>
+
+    <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:0.35rem;">Administrator Sign In</h1>
+    <p style="font-size:0.86rem;color:var(--text-muted);margin-bottom:1.4rem;">
+      Authorized access required to manage smartphones, update Pakistani Rupee (PKR) prices, and verify data sources.
+    </p>
+
+    {% if error %}
+      <div style="background:rgba(244,63,94,0.15);border:1px solid rgba(244,63,94,0.5);color:#fda4af;padding:0.75rem 1rem;border-radius:var(--radius-sm);font-size:0.84rem;margin-bottom:1.15rem;">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form method="post" action="/admin/login" style="display:flex;flex-direction:column;gap:1rem;">
+      <div>
+        <label style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:0.35rem;">Admin Username</label>
+        <input type="text" name="username" placeholder="Enter administrator username" class="form-input" required autocomplete="username" />
+      </div>
+
+      <div>
+        <label style="font-size:0.8rem;font-weight:700;color:var(--text-secondary);display:block;margin-bottom:0.35rem;">Password</label>
+        <input type="password" name="password" placeholder="Enter administrator password" class="form-input" required autocomplete="current-password" />
+      </div>
+
+      <button type="submit" class="btn-primary" style="width:100%;padding:0.75rem;margin-top:0.25rem;">
+        🔐 Sign In to Admin Panel
+      </button>
+    </form>
+  </div>
+</body>
+</html>

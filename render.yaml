@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: pakmobilespec
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: PAK_MOBILE_SECRET
+        generateValue: true
+      - key: PAK_MOBILE_ADMIN_USER
+        value: admin
+      - key: PAK_MOBILE_ADMIN_PASS
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.9

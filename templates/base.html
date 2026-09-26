@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ page_title | default('PakMobileSpec — Mobile Phone Prices in Pakistan (PKR) & Specs') }}</title>
+  <meta name="description" content="{{ meta_description | default('Explore mobile phone prices in Pakistani Rupees (PKR), complete technical specifications, side-by-side comparisons, and major smartphone brands in Pakistan.') }}">
+  {% if request and request.url.path.startswith('/admin') %}
+  <meta name="robots" content="noindex, nofollow">
+  {% else %}
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{{ request.url.scheme ~ '://' ~ request.url.netloc ~ request.url.path if request else '/' }}">
+  {% endif %}
+  <meta property="og:site_name" content="PakMobileSpec">
+  <meta property="og:title" content="{{ page_title | default('PakMobileSpec — Mobile Phone Prices in Pakistan (PKR) & Specs') }}">
+  <meta property="og:description" content="{{ meta_description | default('Explore mobile phone prices in Pakistani Rupees (PKR), complete technical specifications, side-by-side comparisons, and major smartphone brands in Pakistan.') }}">
+  <meta property="og:type" content="{% if phone is defined and phone %}product{% else %}website{% endif %}">
+  <link rel="icon" type="image/x-icon" href="/static/images/favicon.ico?v=2">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/images/favicon-16x16.png?v=2">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/images/favicon-32x32.png?v=2">
+  <link rel="icon" type="image/png" sizes="48x48" href="/static/images/favicon-48x48.png?v=2">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/images/apple-touch-icon.png?v=2">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Compact Top Status / Demo Transparency Strip -->
+  <div class="top-status-strip" role="region" aria-label="Data Transparency Notice">
+    <div class="container top-status-inner">
+      <div style="display:flex;align-items:center;gap:0.65rem;flex-wrap:wrap;">
+        <span class="top-status-pill">⚠️ DEMO / SAMPLE DATA — Verify before relying on this information.</span>
+        <span>Unless marked <strong style="color:#34d399;">VERIFIED</strong>, prices in <strong>Pakistani Rupees (PKR)</strong> &amp; specs are sample catalog entries editable via the <a href="/admin" style="color:#38bdf8;text-decoration:underline;">Admin Panel</a>.</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <span>Currency: <strong style="color:#34d399;">PKR (Rs.)</strong></span>
+        <a href="/admin/export.csv" style="color:#94a3b8;">CSV Feed</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Reference Navigation Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="brand-logo" aria-label="PakMobileSpec Home">
+        <div class="brand-logo-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+            <line x1="12" y1="18" x2="12.01" y2="18"></line>
+          </svg>
+        </div>
+        <div class="brand-logo-text">
+          <div class="brand-logo-title">PakMobile<span>Spec</span></div>
+          <div class="brand-logo-sub">Pakistan's Mobile Prices &amp; Specs</div>
+        </div>
+      </a>
+
+      <nav class="main-nav" id="mainNavMenu" aria-label="Main Navigation">
+        {% set path = request.url.path %}
+        <a href="/" class="nav-link {% if path == '/' %}active{% endif %}">Home</a>
+        <a href="/brands" class="nav-link {% if path.startswith('/brand') %}active{% endif %}">Brands</a>
+        <a href="/phones" class="nav-link {% if path.startswith('/phones') or path.startswith('/phone/') %}active{% endif %}">Phone Finder</a>
+        <a href="/compare" class="nav-link {% if path.startswith('/compare') %}active{% endif %}">Compare</a>
+        <a href="/admin" class="nav-link {% if path.startswith('/admin') %}active{% endif %}">Admin Panel</a>
+      </nav>
+
+      <div class="header-actions">
+        <form action="/phones" method="get" class="header-search-form" role="search">
+          <input type="search"
+                 name="q"
+                 id="globalSearchInput"
+                 class="header-search-input"
+                 placeholder="Search phones, brands, models..."
+                 value="{{ q | default('') }}"
+                 autocomplete="off">
+          <button type="submit" class="header-search-btn" aria-label="Search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </form>
+
+        <a href="/compare" class="header-icon-btn" title="Compare Phones">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+          <span class="compare-badge-count" id="headerCompareCount">0</span>
+        </a>
+
+        <a href="/admin" class="header-icon-btn" title="Admin Portal">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </a>
+
+        <button type="button" class="mobile-menu-btn" id="mobileMenuToggle" aria-label="Toggle Mobile Menu" onclick="document.getElementById('mainNavMenu').classList.toggle('mobile-open')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main style="flex:1;">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Floating Compare Tray -->
+  <div id="compareTray" class="compare-floating-bar" aria-live="polite">
+    <div style="font-size:0.82rem;font-weight:700;color:#ffffff;">
+      Compare List (<span id="trayCount">0</span>/4)
+    </div>
+    <div id="trayItems" style="display:flex;gap:0.45rem;flex-wrap:wrap;"></div>
+    <a href="/compare" id="trayCompareLink" class="btn-detail-primary" style="padding:0.42rem 0.9rem;font-size:0.78rem;">Compare Now →</a>
+    <button type="button" id="trayClearBtn" class="btn-detail-secondary" style="padding:0.42rem 0.7rem;font-size:0.74rem;">Clear</button>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <div class="brand-logo-title" style="margin-bottom:0.45rem;">PakMobile<span>Spec</span></div>
+          <p style="color:#94a3b8;font-size:0.8rem;line-height:1.6;margin-bottom:0.75rem;">
+            Pakistan's dedicated mobile phone specification &amp; PKR price reference portal covering Apple, Samsung, Xiaomi, Vivo, Oppo, OnePlus, Realme, Infinix and Tecno.
+          </p>
+          <div style="font-size:0.74rem;color:#fbbf24;">
+            ⚠️ Data Integrity Policy: Entries marked DEMO / SAMPLE are sample records until verified by an administrator with a source URL.
+          </div>
+        </div>
+        <div>
+          <h4 style="color:#ffffff;font-size:0.86rem;font-weight:700;margin-bottom:0.65rem;">Popular Brands</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.35rem;font-size:0.8rem;">
+            <a href="/brand/apple">Apple</a>
+            <a href="/brand/samsung">Samsung</a>
+            <a href="/brand/xiaomi">Xiaomi</a>
+            <a href="/brand/vivo">Vivo</a>
+            <a href="/brand/oppo">Oppo</a>
+            <a href="/brand/oneplus">OnePlus</a>
+            <a href="/brand/realme">Realme</a>
+            <a href="/brand/infinix">Infinix</a>
+            <a href="/brand/tecno">Tecno</a>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:#ffffff;font-size:0.86rem;font-weight:700;margin-bottom:0.65rem;">Quick Tools</h4>
+          <div style="display:flex;flex-direction:column;gap:0.38rem;font-size:0.8rem;">
+            <a href="/phones">Advanced Phone Finder</a>
+            <a href="/compare">Side-by-Side Comparison</a>
+            <a href="/phones?only_5g=1">5G Phones in Pakistan</a>
+            <a href="/phones?only_verified=1">Verified PKR Catalog</a>
+          </div>
+        </div>
+        <div>
+          <h4 style="color:#ffffff;font-size:0.86rem;font-weight:700;margin-bottom:0.65rem;">Admin &amp; Verification</h4>
+          <p style="font-size:0.78rem;color:#94a3b8;margin-bottom:0.65rem;">
+            Update Pakistani Rupee (PKR) prices, verify official PTA &amp; warranty specs, or export the database.
+          </p>
+          <a href="/admin" class="view-all-btn">Open Admin Panel →</a>
+        </div>
+      </div>
+      <div style="border-top:1px solid rgba(148,163,184,0.12);padding-top:1rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;font-size:0.75rem;">
+        <span>© {{ current_year }} PakMobileSpec. All prices displayed in Pakistani Rupees (PKR).</span>
+        <span>Built with FastAPI &amp; SQLite • Production Ready</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/js/main.js"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

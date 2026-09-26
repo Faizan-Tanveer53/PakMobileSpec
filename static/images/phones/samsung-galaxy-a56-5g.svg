@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" width="720" height="760">
+  <defs>
+    <linearGradient id="back-samsung-galaxy-a56-5g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="scr-samsung-galaxy-a56-5g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0ea5e9"/>
+      <stop offset="50%" stop-color="#082f49"/>
+      <stop offset="100%" stop-color="#050811"/>
+    </linearGradient>
+    <radialGradient id="glow-samsung-galaxy-a56-5g" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="drop-samsung-galaxy-a56-5g" x="-20%" y="-15%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Backlight Glow -->
+  <circle cx="185" cy="190" r="145" fill="url(#glow-samsung-galaxy-a56-5g)"/>
+
+  <!-- REAR CHASSIS (Left Device Showing Exact Model Camera Architecture) -->
+  <g filter="url(#drop-samsung-galaxy-a56-5g)">
+    <rect x="54" y="42" width="136" height="286" rx="22" fill="url(#back-samsung-galaxy-a56-5g)" stroke="#bae6fd" stroke-width="2.5"/>
+    <!-- Metallic Glass Diagonal Sheen -->
+    <path d="M 60 44 L 145 44 L 85 326 L 56 326 Z" fill="#ffffff" fill-opacity="0.07"/>
+    
+        <!-- Samsung Galaxy A Series Floating Triple Vertical Rings -->
+        <circle cx="78" cy="72" r="11" fill="#111827" stroke="#bae6fd" stroke-width="2"/>
+        <circle cx="78" cy="100" r="11" fill="#111827" stroke="#bae6fd" stroke-width="2"/>
+        <circle cx="78" cy="128" r="11" fill="#111827" stroke="#bae6fd" stroke-width="2"/>
+        <circle cx="102" cy="100" r="4" fill="#fef3c7"/>
+        
+    <text x="122" y="302" text-anchor="middle" fill="#ffffff" fill-opacity="0.55" font-family="Inter, system-ui, sans-serif" font-size="9.5" font-weight="800" letter-spacing="2">SAMSUNG</text>
+  </g>
+
+  <!-- FRONT DISPLAY (Right Overlapping Device Showing Screen & Wallpaper) -->
+  <g filter="url(#drop-samsung-galaxy-a56-5g)">
+    <rect x="172" y="38" width="138" height="292" rx="22" fill="#050811" stroke="#bae6fd" stroke-width="2.5"/>
+    <rect x="177" y="43" width="128" height="282" rx="19" fill="url(#scr-samsung-galaxy-a56-5g)"/>
+    <!-- Dynamic Abstract Wallpaper Graphic -->
+    <circle cx="241" cy="165" r="56" fill="#38bdf8" fill-opacity="0.28"/>
+    <path d="M 177 220 Q 241 155 305 240 L 305 325 L 177 325 Z" fill="#3b82f6" fill-opacity="0.32"/>
+    <circle cx="241" cy="57" r="4.5" fill="#050811"/>
+    <!-- Clean Model Signature on Screen -->
+    <text x="241" y="102" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-family="Inter, system-ui, sans-serif" font-size="8.5" font-weight="700" letter-spacing="2">SAMSUNG</text>
+    <text x="241" y="122" text-anchor="middle" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="12.5" font-weight="800">Galaxy A56 5G</text>
+  </g>
+</svg>

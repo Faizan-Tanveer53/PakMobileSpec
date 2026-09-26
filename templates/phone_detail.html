@@ -1,0 +1,544 @@
+{% extends "base.html" %}
+{% from "macros.html" import render_brand_logo, render_phone_card %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": {{ phone.brand_name | tojson }},
+          "item": {{ ('/brand/' ~ phone.brand_slug) | tojson }}
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": {{ phone.model_name | tojson }},
+          "item": {{ ('/phone/' ~ phone.slug) | tojson }}
+        }
+      ]
+    },
+    {
+      "@type": "Product",
+      "name": {{ (phone.brand_name ~ ' ' ~ phone.model_name) | tojson }},
+      "brand": {
+        "@type": "Brand",
+        "name": {{ phone.brand_name | tojson }}
+      },
+      "image": {{ phone.image_url | tojson }},
+      "description": {{ phone.summary_text | tojson }},
+      "sku": {{ phone.slug | tojson }},
+      "releaseDate": {{ phone.release_date | tojson }},
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "PKR",
+        "price": {{ phone.display_price_pkr | tojson }},
+        "availability": "{% if phone.availability == 'Discontinued' %}https://schema.org/Discontinued{% else %}https://schema.org/InStock{% endif %}",
+        "url": {{ ('/phone/' ~ phone.slug) | tojson }}
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="section-block" style="padding-top:1.35rem;padding-bottom:2.75rem;">
+  <div class="container">
+
+    <!-- Breadcrumb & Back Link -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.9rem;font-size:0.8rem;color:#94a3b8;">
+      <div style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;">
+        <a href="/" style="color:#94a3b8;">Home</a>
+        <span>/</span>
+        <a href="/brand/{{ phone.brand_slug }}" style="color:#94a3b8;">{{ phone.brand_name }}</a>
+        <span>/</span>
+        <strong style="color:#ffffff;">{{ phone.model_name }}</strong>
+      </div>
+      <a href="/phones" class="view-all-btn">← Back to Phone Finder</a>
+    </div>
+
+    {% if reported %}
+    <div style="margin-bottom:1rem;padding:0.85rem 1.1rem;border-radius:10px;background:rgba(16,185,129,0.16);border:1px solid rgba(16,185,129,0.45);color:#34d399;font-size:0.85rem;font-weight:700;display:flex;align-items:center;justify-content:space-between;">
+      <span>✓ Thank you! Your feedback report has been logged for Administrator verification.</span>
+      <a href="/phone/{{ phone.slug }}" style="color:#94a3b8;font-size:0.78rem;text-decoration:underline;">Dismiss</a>
+    </div>
+    {% endif %}
+
+    <!-- TOP PRODUCT HERO CARD (MATCHING REFERENCE) -->
+    <div class="detail-top-card">
+      <div class="detail-hero-grid">
+
+        <!-- Left: 4 Vertical Thumbnails + Main Dark Studio Stage -->
+        <div class="detail-gallery-wrap">
+          <div class="detail-thumbs-col">
+            <button type="button" class="detail-thumb-item active" onclick="setStageView(this, 'scale(1)')">
+              <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Dual View">
+              <span class="detail-thumb-label">Studio</span>
+            </button>
+            <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.14) translate(-8px, 4px)')">
+              <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Display">
+              <span class="detail-thumb-label">Front</span>
+            </button>
+            <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.16) translate(12px, 6px)')">
+              <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Camera">
+              <span class="detail-thumb-label">Camera</span>
+            </button>
+            <button type="button" class="detail-thumb-item" onclick="setStageView(this, 'scale(1.06)')">
+              <img src="{{ phone.image_url }}" alt="{{ phone.model_name }} Finish">
+              <span class="detail-thumb-label">Finish</span>
+            </button>
+          </div>
+
+          <div class="detail-main-stage">
+            <img src="{{ phone.image_url }}"
+                 id="mainDetailPhoneImg"
+                 alt="{{ phone.brand_name }} {{ phone.model_name }} Official Pakistan Specs & PKR Price">
+          </div>
+        </div>
+
+        <!-- Right: Product Info, PKR Price, Metadata Cards, Status Pills & CTAs -->
+        <div class="detail-summary-col">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            {% if not phone.is_demo_data %}
+              <div class="detail-status-banner-pill verified">
+                <span>✓ VERIFIED PAKISTAN MARKET DATA</span>
+              </div>
+            {% else %}
+              <div class="detail-status-banner-pill demo">
+                <span>⚠️ DEMO / SAMPLE DATA — EDITABLE IN ADMIN</span>
+              </div>
+            {% endif %}
+            {% if phone.catalog_status == 'OUTDATED' or phone.availability == 'Discontinued' %}
+              <div class="detail-status-banner-pill" style="background:rgba(239,68,68,0.16);color:#f87171;border:1px solid rgba(239,68,68,0.4);">
+                <span>OUTDATED / DISCONTINUED</span>
+              </div>
+            {% elif phone.catalog_status == 'NEEDS_REVIEW' %}
+              <div class="detail-status-banner-pill" style="background:rgba(245,158,11,0.16);color:#fbbf24;border:1px solid rgba(245,158,11,0.4);">
+                <span>NEEDS PRICE REVIEW</span>
+              </div>
+            {% endif %}
+            {% if phone.is_sale_active %}
+              <div class="detail-status-banner-pill" style="background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.45);">
+                <span>🔥 {{ phone.sale_label or 'ACTIVE SALE OFFER' }} ({{ phone.discount_percent }}% OFF)</span>
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="detail-title-row">
+            <div style="background:rgba(255,255,255,0.04);padding:0.35rem 0.6rem;border-radius:10px;">
+              {{ render_brand_logo(phone.brand_slug, phone.brand_name) }}
+            </div>
+            <div>
+              <h1 class="detail-model-title">
+                {% if phone.brand_name.lower() in phone.model_name.lower() %}
+                  {{ phone.model_name }}
+                {% else %}
+                  {{ phone.brand_name }} {{ phone.model_name }}
+                {% endif %}
+              </h1>
+              <div class="detail-brand-sub">
+                {{ phone.brand_name }} &nbsp;•&nbsp; {{ phone.official_variant_name or (phone.ram_display ~ ' / ' ~ phone.storage_display) }}
+              </div>
+            </div>
+          </div>
+
+          {% if phone.is_sale_active %}
+          <div class="detail-price-big" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;">
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              <span class="detail-original-price-crossed" style="font-size:0.9rem;color:#94a3b8;text-decoration:line-through;font-weight:600;">Original: {{ format_pkr(phone.price_pkr) }}</span>
+              <span class="detail-discount-badge" style="font-size:0.75rem;font-weight:800;padding:2px 8px;border-radius:6px;background:rgba(16,185,129,0.22);color:#34d399;border:1px solid rgba(16,185,129,0.45);">{{ phone.discount_percent }}% OFF</span>
+              {% if phone.sale_label %}
+                <span class="detail-sale-label-badge" style="font-size:0.74rem;font-weight:800;padding:2px 8px;border-radius:6px;background:rgba(56,189,248,0.18);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);">{{ phone.sale_label }}</span>
+              {% endif %}
+            </div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <span class="detail-sale-price-active" style="color:#34d399;">Sale: {{ format_pkr(phone.sale_price_pkr) }}</span>
+              <small>{{ phone.currency or 'PKR' }}</small>
+            </div>
+          </div>
+          {% else %}
+          <div class="detail-price-big">
+            <span>{{ format_pkr(phone.price_pkr) }}</span>
+            <small>{{ phone.currency or 'PKR' }}</small>
+          </div>
+          {% endif %}
+
+          <!-- 2 Metadata Info Cards: Last Updated & Source -->
+          <div class="detail-meta-cards-2col">
+            <div class="detail-meta-box">
+              <span class="detail-meta-label">Last Updated / Verified</span>
+              <span class="detail-meta-val">
+                {{ format_date_human(phone.last_verified_at or phone.updated_at) }}
+                <small style="color:#94a3b8;font-size:0.72rem;font-weight:500;">({{ phone.release_date or 'Pakistan Release' }})</small>
+              </span>
+            </div>
+            <div class="detail-meta-box">
+              <span class="detail-meta-label">Source / Verification</span>
+              <span class="detail-meta-val">
+                {% if phone.source_url %}
+                  <a href="{{ phone.source_url }}" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:underline;">{{ phone.source_name or 'Official Source' }} ↗</a>
+                {% else %}
+                  {{ phone.source_name or 'Demo / Sample Catalog' }}
+                {% endif %}
+              </span>
+            </div>
+          </div>
+
+          <!-- 3 Status Pills Row -->
+          <div class="detail-pills-row">
+            <span class="detail-feature-pill">
+              <span style="color:#38bdf8;">●</span>
+              {{ '5G Supported' if phone.is_5g else '4G LTE Network' }}
+            </span>
+            <span class="detail-feature-pill">
+              <span style="color:#34d399;">✓</span>
+              {{ phone.pta_status or 'PTA Approved' }}
+            </span>
+            <span class="detail-feature-pill">
+              {% if not phone.is_demo_data %}
+                <span style="color:#34d399;">✓ Verified Price</span>
+              {% else %}
+                <span style="color:#fbbf24;">⚠️ Demo / Sample</span>
+              {% endif %}
+            </span>
+            <span class="detail-feature-pill">
+              <span style="color:#94a3b8;">Availability:</span>
+              <strong style="color:#f8fafc;">{{ phone.availability or 'Available' }}</strong>
+            </span>
+          </div>
+
+          <!-- Subtle Source & Verification Transparency Strip -->
+          <div style="margin-top:0.15rem;padding:0.65rem 0.85rem;border-radius:10px;background:rgba(15,23,42,0.55);border:1px solid rgba(56,189,248,0.16);font-size:0.77rem;color:#cbd5e1;line-height:1.45;">
+            {% if not phone.is_demo_data %}
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+                <strong style="color:#34d399;">✓ Verified from Official / Market Sources</strong>
+                <span style="color:#94a3b8;">Catalog Status: <strong style="color:#38bdf8;">{{ phone.catalog_status or 'CURRENT' }}</strong></span>
+              </div>
+              <div style="margin-top:3px;color:#94a3b8;">
+                Source: <strong>{{ phone.source_name }}</strong>
+                {% if phone.source_url %}
+                  &nbsp;•&nbsp; <a href="{{ phone.source_url }}" target="_blank" rel="noopener" style="color:#38bdf8;text-decoration:underline;">Visit Official Source ↗</a>
+                {% endif %}
+                {% if phone.verification_notes %}
+                  &nbsp;—&nbsp; {{ phone.verification_notes }}
+                {% endif %}
+              </div>
+            {% else %}
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+                <strong style="color:#fbbf24;">⚠️ Unverified Demo / Legacy Entry ({{ phone.catalog_status or 'DEMO/SAMPLE' }})</strong>
+                <span style="color:#94a3b8;">Availability: <strong>{{ phone.availability }}</strong></span>
+              </div>
+              <div style="margin-top:3px;color:#94a3b8;">
+                {{ phone.verification_notes or 'This phone entry is retained as a sample/legacy model. Verify current retail availability and PTA taxes before purchase.' }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- 3 Action Buttons Row (Matching Reference) -->
+          <div class="detail-cta-row">
+            <button type="button"
+                    class="btn-detail-primary js-compare-toggle"
+                    data-slug="{{ phone.slug }}"
+                    data-name="{{ phone.brand_name }} {{ phone.model_name }}">
+              + Add to Compare
+            </button>
+            <a href="/compare?phones={{ phone.slug }},samsung-galaxy-s25-ultra" class="btn-detail-secondary">
+              ⇄ Side-by-Side Compare
+            </a>
+            <button type="button"
+                    class="btn-detail-secondary"
+                    onclick="document.getElementById('reportFeedbackBox').scrollIntoView({behavior:'smooth'})">
+              ⚑ Report Incorrect Info
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- FULL SPECIFICATIONS SECTION (SIDEBAR TABS + 2x4 ICON CARDS) -->
+    <div class="section-header-row" style="margin-bottom:0.95rem;">
+      <div class="section-title-group">
+        <span class="section-title-bar"></span>
+        <h2 class="section-title">Full Specifications</h2>
+      </div>
+      <a href="/phones" class="view-all-btn">← Back to Results</a>
+    </div>
+
+    <div class="specs-workspace-grid">
+      <!-- Left Vertical Category Tabs -->
+      <aside class="specs-sidebar-nav" aria-label="Specification Categories">
+        <button type="button" class="specs-tab-btn active" onclick="scrollToSpecSection(this, 'spec-overview')">
+          <span>📋</span> Overview
+        </button>
+        <button type="button" class="specs-tab-btn" onclick="scrollToSpecSection(this, 'spec-display')">
+          <span>📱</span> Display
+        </button>
+        <button type="button" class="specs-tab-btn" onclick="scrollToSpecSection(this, 'spec-performance')">
+          <span>⚡</span> Performance
+        </button>
+        <button type="button" class="specs-tab-btn" onclick="scrollToSpecSection(this, 'spec-camera')">
+          <span>📷</span> Camera
+        </button>
+        <button type="button" class="specs-tab-btn" onclick="scrollToSpecSection(this, 'spec-battery')">
+          <span>🔋</span> Battery
+        </button>
+        <button type="button" class="specs-tab-btn" onclick="scrollToSpecSection(this, 'spec-connectivity')">
+          <span>📡</span> Connectivity
+        </button>
+        <button type="button" class="specs-tab-btn" onclick="scrollToSpecSection(this, 'spec-pta')">
+          <span>🛡️</span> PTA &amp; Warranty
+        </button>
+      </aside>
+
+      <!-- Right 2x4 Icon Specification Grid + Verification Strip + Full Tables -->
+      <div>
+        <div id="spec-overview" class="specs-2x4-grid">
+          <!-- 1. Display -->
+          <div class="spec-icon-card">
+            <div class="spec-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <div>
+              <div class="spec-card-label">Display</div>
+              <div class="spec-card-value">{{ phone.display_size }}" {{ phone.display_type }}</div>
+              <div class="spec-card-sub">{{ phone.display_resolution }} • {{ phone.refresh_rate or '120Hz' }}</div>
+            </div>
+          </div>
+
+          <!-- 2. Rear Camera -->
+          <div class="spec-icon-card">
+            <div class="spec-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
+            <div>
+              <div class="spec-card-label">Rear Camera</div>
+              <div class="spec-card-value">{{ phone.rear_camera }}</div>
+              <div class="spec-card-sub">Optical &amp; AI Imaging</div>
+            </div>
+          </div>
+
+          <!-- 3. Processor -->
+          <div class="spec-icon-card">
+            <div class="spec-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+            </div>
+            <div>
+              <div class="spec-card-label">Processor</div>
+              <div class="spec-card-value">{{ phone.processor }}</div>
+              <div class="spec-card-sub">{{ phone.os_version }}</div>
+            </div>
+          </div>
+
+          <!-- 4. Front Camera -->
+          <div class="spec-icon-card">
+            <div class="spec-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div>
+              <div class="spec-card-label">Front Camera</div>
+              <div class="spec-card-value">{{ phone.front_camera }}</div>
+              <div class="spec-card-sub">Selfie &amp; Video Calls</div>
+            </div>
+          </div>
+
+          <!-- 5. RAM -->
+          <div class="spec-icon-card">
+            <div class="spec-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 19v-3"/><path d="M10 19v-3"/><path d="M14 19v-3"/><path d="M18 19v-3"/><rect x="3" y="8" width="18" height="8" rx="1"/></svg>
+            </div>
+            <div>
+              <div class="spec-card-label">RAM</div>
+              <div class="spec-card-value">{{ phone.ram_display }}</div>
+              <div class="spec-card-sub">High-Speed Multitasking</div>
+            </div>
+          </div>
+
+          <!-- 6. Battery -->
+          <div class="spec-icon-card">
+            <div class="spec-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="1" y="6" width="18" height="12" rx="2"/><line x1="23" y1="13" x2="23" y2="11"/></svg>
+            </div>
+            <div>
+              <div class="spec-card-label">Battery</div>
+              <div class="spec-card-value">{{ phone.battery_mah }} mAh</div>
+              <div class="spec-card-sub">All-Day Endurance</div>
+            </div>
+          </div>
+
+          <!-- 7. Storage -->
+          <div class="spec-icon-card">
+            <div class="spec-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            </div>
+            <div>
+              <div class="spec-card-label">Storage</div>
+              <div class="spec-card-value">{{ phone.storage_display }}</div>
+              <div class="spec-card-sub">Internal Flash Memory</div>
+            </div>
+          </div>
+
+          <!-- 8. Charging -->
+          <div class="spec-icon-card">
+            <div class="spec-icon-circle">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <div>
+              <div class="spec-card-label">Charging</div>
+              <div class="spec-card-value">{{ phone.charging_specs }}</div>
+              <div class="spec-card-sub">Fast Power Delivery</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Verification & Source Strip (Matching Reference) -->
+        <div class="verification-alert-strip {{ 'verified' if not phone.is_demo_data else 'demo' }}">
+          <div>
+            <strong>{{ '✓ VERIFIED DATA' if not phone.is_demo_data else '⚠️ DEMO / SAMPLE DATA' }}:</strong>
+            {{ phone.verification_notes or DEMO_WARNING_TEXT }}
+            &nbsp;•&nbsp; Last Updated: <strong>{{ format_date_human(phone.updated_at) }}</strong>
+          </div>
+          <a href="/admin/phone/{{ phone.id }}/edit" class="view-all-btn" style="flex-shrink:0;">Edit in Admin →</a>
+        </div>
+
+        <!-- Detailed Specification Tables -->
+        <div id="spec-display" class="spec-detail-table-card">
+          <div class="spec-detail-table-header">📱 Display &amp; Design</div>
+          <table class="spec-detail-table">
+            <tr><th>Display Size</th><td>{{ phone.display_size }} inches</td></tr>
+            <tr><th>Panel Technology</th><td>{{ phone.display_type }}</td></tr>
+            <tr><th>Resolution</th><td>{{ phone.display_resolution }}</td></tr>
+            <tr><th>Refresh Rate</th><td>{{ phone.refresh_rate or '120Hz' }}</td></tr>
+            <tr><th>Dimensions &amp; Weight</th><td>{{ phone.dimensions }} • {{ phone.weight }}</td></tr>
+            <tr><th>Available Colors</th><td>{{ phone.colors }}</td></tr>
+          </table>
+        </div>
+
+        <div id="spec-performance" class="spec-detail-table-card">
+          <div class="spec-detail-table-header">⚡ Performance, RAM &amp; Storage</div>
+          <table class="spec-detail-table">
+            <tr><th>Processor / Chipset</th><td>{{ phone.processor }}</td></tr>
+            <tr><th>RAM Capacity</th><td>{{ phone.ram_display }} ({{ phone.ram_gb }} GB)</td></tr>
+            <tr><th>Internal Storage</th><td>{{ phone.storage_display }} ({{ phone.storage_gb }} GB)</td></tr>
+            <tr><th>Operating System</th><td>{{ phone.os_version }}</td></tr>
+            <tr><th>Official Model / Variant Name</th><td>{{ phone.official_variant_name }}</td></tr>
+          </table>
+        </div>
+
+        <div id="spec-camera" class="spec-detail-table-card">
+          <div class="spec-detail-table-header">📷 Rear &amp; Front Cameras</div>
+          <table class="spec-detail-table">
+            <tr><th>Rear Camera System</th><td>{{ phone.rear_camera }}</td></tr>
+            <tr><th>Front Selfie Camera</th><td>{{ phone.front_camera }}</td></tr>
+          </table>
+        </div>
+
+        <div id="spec-battery" class="spec-detail-table-card">
+          <div class="spec-detail-table-header">🔋 Battery &amp; Charging</div>
+          <table class="spec-detail-table">
+            <tr><th>Battery Capacity</th><td>{{ phone.battery_mah }} mAh</td></tr>
+            <tr><th>Charging Speed &amp; Tech</th><td>{{ phone.charging_specs }}</td></tr>
+          </table>
+        </div>
+
+        <div id="spec-connectivity" class="spec-detail-table-card">
+          <div class="spec-detail-table-header">📡 Network, PTA &amp; Pricing (PKR)</div>
+          <table class="spec-detail-table" id="spec-pta">
+            <tr>
+              <th>Pakistan Price (PKR)</th>
+              <td style="color:#34d399;font-weight:800;">
+                {% if phone.is_sale_active %}
+                  <span style="text-decoration:line-through;color:#94a3b8;font-weight:600;margin-right:6px;">{{ format_pkr(phone.price_pkr) }}</span>
+                  <span>{{ format_pkr(phone.sale_price_pkr) }} ({{ phone.discount_percent }}% OFF{% if phone.sale_label %} • {{ phone.sale_label }}{% endif %})</span>
+                {% else %}
+                  {{ format_pkr(phone.price_pkr) }}
+                {% endif %}
+                ({{ phone.data_status }})
+              </td>
+            </tr>
+            <tr><th>Network Bands</th><td>{{ phone.network_bands }} ({{ '5G Supported' if phone.is_5g else '4G LTE' }})</td></tr>
+            <tr><th>PTA Approval Status</th><td>{{ phone.pta_status or 'PTA Approved' }}</td></tr>
+            <tr><th>Release Date</th><td>{{ phone.release_date }}</td></tr>
+            <tr><th>Last Updated</th><td>{{ format_date_human(phone.updated_at) }}</td></tr>
+          </table>
+        </div>
+
+        {% if phone.price_history %}
+        <div class="spec-detail-table-card">
+          <div class="spec-detail-table-header">📈 PKR Price History &amp; Audit Trail</div>
+          <table class="spec-detail-table">
+            {% for ph in phone.price_history %}
+            <tr>
+              <th>{{ ph.changed_at }}</th>
+              <td>
+                Changed from <strong>{{ format_pkr(ph.old_price_pkr) }}</strong> to <strong style="color:#34d399;">{{ format_pkr(ph.new_price_pkr) }}</strong>
+                {% if ph.note %}<span style="color:#94a3b8;font-size:0.76rem;"> ({{ ph.note }})</span>{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </table>
+        </div>
+        {% endif %}
+
+        <!-- Report Incorrect Information Form -->
+        <div id="reportFeedbackBox" class="spec-detail-table-card" style="padding:1.1rem;">
+          <h3 style="font-size:0.95rem;font-weight:800;color:#ffffff;margin-bottom:0.35rem;">⚑ Report Incorrect Information / Price Update</h3>
+          <p style="font-size:0.78rem;color:#94a3b8;margin-bottom:0.75rem;">Spotted a newer market price in PKR or an official distributor update? Submit a correction for admin review.</p>
+          <form action="/phone/{{ phone.slug }}/report" method="post" style="display:grid;grid-template-columns:1fr 1.5fr auto;gap:0.65rem;align-items:center;">
+            <input type="text" name="reporter_name" placeholder="Your Name / Shop (Optional)" class="filter-input">
+            <input type="text" name="message" required placeholder="E.g. Official PTA price updated to Rs. ..." class="filter-input">
+            <button type="submit" class="btn-detail-primary" style="height:40px;">Submit Report</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Similar Phones -->
+    {% if similar_phones %}
+    <div class="section-header-row" style="margin-top:2rem;">
+      <div class="section-title-group">
+        <span class="section-title-bar"></span>
+        <h2 class="section-title">Similar Smartphones in Pakistan</h2>
+      </div>
+      <a href="/compare?phones={{ phone.slug }},{{ similar_phones[0].slug }}" class="view-all-btn">Compare Side-by-Side →</a>
+    </div>
+    <div class="phones-5-grid">
+      {% for sp in similar_phones %}
+        {{ render_phone_card(sp) }}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function setStageView(btn, transformVal) {
+  document.querySelectorAll('.detail-thumb-item').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const img = document.getElementById('mainDetailPhoneImg');
+  if (img) img.style.transform = transformVal;
+}
+function scrollToSpecSection(btn, id) {
+  document.querySelectorAll('.specs-tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+{% endblock %}

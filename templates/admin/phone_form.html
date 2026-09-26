@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ page_title }}</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="/admin" class="brand-logo">
+        <div class="brand-logo-icon" style="background:linear-gradient(135deg,#10b981,#2563eb);">AD</div>
+        <div>
+          PakMobile<span class="highlight">Admin</span>
+          <div style="font-size:0.65rem;color:var(--text-muted);">PHONE SPECIFICATION &amp; PKR EDITOR</div>
+        </div>
+      </a>
+      <div style="display:flex;gap:0.75rem;">
+        <a href="/admin" class="btn-outline">← Back to Admin Dashboard</a>
+        {% if phone %}
+          <a href="/phone/{{ phone.slug }}" target="_blank" class="btn-outline">View Public Page ↗</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <main class="container" style="padding:2rem 1.25rem 4rem;max-width:1080px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem;">
+      <div>
+        <h1 style="font-size:1.65rem;font-weight:900;">
+          {% if phone %}Edit {{ phone.brand_name }} {{ phone.model_name }}{% else %}Add New Mobile Phone{% endif %}
+        </h1>
+        <p style="font-size:0.88rem;color:var(--text-muted);">
+          Manage official variant names, Pakistani Rupee (PKR) prices, technical specifications, verification status, and source provenance.
+        </p>
+      </div>
+      {% if phone %}
+      <div style="font-size:0.82rem;color:var(--text-muted);">
+        Last Updated: <strong>{{ format_date_human(phone.updated_at) }}</strong> ({{ phone.updated_at }})
+      </div>
+      {% endif %}
+    </div>
+
+    <form id="phoneFullForm" onsubmit="submitFullPhoneForm(event)" style="display:flex;flex-direction:column;gap:1.5rem;">
+      {% if phone %}
+        <input type="hidden" name="phone_id" value="{{ phone.id }}" />
+      {% endif %}
+
+      <!-- 1. Brand, Model, Official Variant, PKR Price & Verification Provenance -->
+      <div class="spec-category-card" style="padding:1.5rem;">
+        <h2 style="font-size:1.1rem;font-weight:800;color:var(--accent-secondary);margin-bottom:1.15rem;">
+          1. Brand, Official Variant, PKR Price &amp; Data Verification Provenance
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Brand *</label>
+            <select name="brand_id" class="form-select" required>
+              {% for b in brands %}
+                <option value="{{ b.id }}" {% if phone and phone.brand_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Model Name *</label>
+            <input type="text" name="model_name" value="{{ phone.model_name if phone else '' }}" class="form-input" placeholder="e.g. Galaxy S24 Ultra" required />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Official Model / Variant Name *</label>
+            <input type="text" name="official_variant_name" value="{{ phone.official_variant_name if phone else '' }}" class="form-input" placeholder="e.g. SM-S928B/DS (12GB / 256GB PK Variant)" />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Pakistan Price in PKR *</label>
+            <input type="number" name="price_pkr" id="regularPriceInput" value="{{ phone.price_pkr if phone else 79999 }}" class="form-input" style="font-weight:800;color:var(--price-color);" oninput="recalculateFormSaleDiscount()" required />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Currency *</label>
+            <input type="text" name="currency" value="{{ phone.currency if phone else 'PKR' }}" class="form-input" readonly />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Data Status (Explicit Admin Choice) *</label>
+            <select name="data_status" class="form-select">
+              <option value="DEMO/SAMPLE" {% if not phone or phone.is_demo_data == 1 %}selected{% endif %}>⚠️ DEMO / SAMPLE DATA (Unverified)</option>
+              <option value="VERIFIED" {% if phone and phone.is_demo_data == 0 %}selected{% endif %}>✓ VERIFIED DATA (Explicitly Verified)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">PTA Status</label>
+            <input type="text" name="pta_status" value="{{ phone.pta_status if phone else 'PTA Approved / Official Warranty' }}" class="form-input" />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Availability</label>
+            <select name="availability" class="form-select">
+              {% for st in ['Available', 'Coming Soon', 'Out of Stock', 'Discontinued'] %}
+                <option value="{{ st }}" {% if phone and phone.availability == st %}selected{% endif %}>{{ st }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Release Date</label>
+            <input type="date" name="release_date" value="{{ phone.release_date if phone else '2025-01-15' }}" class="form-input" />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Catalog Lifecycle Status *</label>
+            <select name="catalog_status" class="form-select">
+              {% set cur_cat = (phone.catalog_status if phone and phone.catalog_status else 'CURRENT') %}
+              <option value="CURRENT" {% if cur_cat == 'CURRENT' %}selected{% endif %}>★ CURRENT (Active 2024–2026 Lineup)</option>
+              <option value="OLDER_AVAILABLE" {% if cur_cat == 'OLDER_AVAILABLE' %}selected{% endif %}>OLDER AVAILABLE (Previous Gen Still Sold)</option>
+              <option value="OUTDATED" {% if cur_cat == 'OUTDATED' %}selected{% endif %}>OUTDATED / DISCONTINUED</option>
+              <option value="NEEDS_REVIEW" {% if cur_cat == 'NEEDS_REVIEW' %}selected{% endif %}>NEEDS REVIEW (Import / Price Fluctuation)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">SEO URL Slug (Auto-generated if blank)</label>
+            <input type="text" name="slug" value="{{ phone.slug if phone else '' }}" class="form-input" placeholder="e.g. samsung-galaxy-s24-ultra" />
+          </div>
+        </div>
+
+        <!-- Source Name, Source URL & Verification Notes -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Source Name (e.g. Samsung Pakistan Official / PriceOye)</label>
+            <input type="text" name="source_name" value="{{ phone.source_name if phone else 'Demo / Sample Seed Catalog (Unverified)' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Source URL (Official Brand / Retailer Link)</label>
+            <input type="url" name="source_url" value="{{ phone.source_url if phone else '' }}" class="form-input" placeholder="https://..." />
+          </div>
+        </div>
+
+        <div style="margin-top:1rem;">
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Verification Notes</label>
+          <input type="text" name="verification_notes" value="{{ phone.verification_notes if phone else DEMO_WARNING_TEXT }}" class="form-input" />
+        </div>
+
+        <div style="display:flex;gap:1.5rem;margin-top:1rem;flex-wrap:wrap;">
+          <label class="filter-label">
+            <input type="checkbox" name="is_latest" value="1" {% if not phone or phone.is_latest %}checked{% endif %} />
+            <span>Feature in <strong>Latest Smartphones</strong></span>
+          </label>
+          <label class="filter-label">
+            <input type="checkbox" name="is_popular" value="1" {% if phone and phone.is_popular %}checked{% endif %} />
+            <span>Feature in <strong>Popular / Trending Smartphones</strong></span>
+          </label>
+          <label class="filter-label">
+            <input type="checkbox" name="is_5g" value="1" {% if not phone or phone.is_5g %}checked{% endif %} />
+            <span>⚡ Supports <strong>5G Network</strong></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- SALE / OFFER SECTION -->
+      <div class="spec-category-card" style="padding:1.5rem;border:1px solid rgba(16,185,129,0.38);">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.75rem;margin-bottom:1.15rem;">
+          <div>
+            <h2 style="font-size:1.1rem;font-weight:800;color:#34d399;margin:0;">
+              🔥 SALE / OFFER
+            </h2>
+            <p style="font-size:0.78rem;color:var(--text-muted);margin:0.2rem 0 0;">
+              Configure promotional sale pricing, custom sale badge label, and optional start/end dates without overwriting the regular PKR price.
+            </p>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.85rem;">
+            <span id="liveDiscountBadge" style="font-size:0.82rem;font-weight:800;padding:0.35rem 0.8rem;border-radius:8px;background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.45);">
+              Discount: {{ phone.configured_discount_percent if (phone and phone.configured_discount_percent) else 0 }}% OFF
+            </span>
+            <button type="button" class="btn-outline" style="padding:0.35rem 0.8rem;font-size:0.78rem;color:#f87171;border-color:rgba(248,113,113,0.4);" onclick="clearSaleFormFields()">
+              ✕ Clear Sale
+            </button>
+          </div>
+        </div>
+
+        <input type="hidden" name="clear_sale" id="clearSaleHiddenInput" value="0" />
+
+        <div style="margin-bottom:1rem;">
+          <label class="filter-label" style="font-size:0.9rem;font-weight:800;color:#ffffff;">
+            <input type="checkbox" name="sale_active" id="saleActiveCheckbox" value="1" {% if phone and phone.sale_active == 1 %}checked{% endif %} onchange="recalculateFormSaleDiscount()" />
+            <span>Enable Sale on this Phone</span>
+          </label>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Sale Label (optional)</label>
+            <input type="text" name="sale_label" id="saleLabelInput" value="{{ phone.sale_label if (phone and phone.sale_label) else '' }}" class="form-input" placeholder="e.g. Eid Sale, Ramadan Offer, Flash Deal" oninput="document.getElementById('clearSaleHiddenInput').value='0'" />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Original Price (PKR)</label>
+            <input type="text" id="originalPriceReadonly" value="Rs. {{ '{:,}'.format(phone.price_pkr if phone else 79999) }}" class="form-input" style="color:#94a3b8;font-weight:700;" readonly />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Sale Price (PKR)</label>
+            <input type="number" name="sale_price_pkr" id="salePriceInput" value="{{ phone.sale_price_pkr if (phone and phone.sale_price_pkr) else '' }}" class="form-input" style="font-weight:800;color:#34d399;" placeholder="Must be less than Regular Price" oninput="recalculateFormSaleDiscount()" />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Start Date / Time (optional)</label>
+            <input type="datetime-local" name="sale_start_at" id="saleStartInput" value="{{ phone.sale_start_at if (phone and phone.sale_start_at) else '' }}" class="form-input" onchange="recalculateFormSaleDiscount()" />
+          </div>
+
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">End Date / Time (optional)</label>
+            <input type="datetime-local" name="sale_end_at" id="saleEndInput" value="{{ phone.sale_end_at if (phone and phone.sale_end_at) else '' }}" class="form-input" onchange="recalculateFormSaleDiscount()" />
+          </div>
+        </div>
+
+        <div id="saleFormErrorBanner" style="display:none;margin-top:0.85rem;padding:0.65rem 0.9rem;border-radius:8px;background:rgba(239,68,68,0.16);border:1px solid rgba(239,68,68,0.45);color:#f87171;font-size:0.8rem;font-weight:700;"></div>
+      </div>
+
+      <!-- 2. Hardware, RAM, Storage & Processor -->
+      <div class="spec-category-card" style="padding:1.5rem;">
+        <h2 style="font-size:1.1rem;font-weight:800;color:var(--accent-secondary);margin-bottom:1.15rem;">
+          2. Memory (RAM / Storage), Processor / Chipset &amp; OS
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Base RAM (Numeric GB for Filter)</label>
+            <input type="number" name="ram_gb" value="{{ phone.ram_gb if phone else 8 }}" class="form-input" required />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">RAM Display Text</label>
+            <input type="text" name="ram_display" value="{{ phone.ram_display if phone else '8 GB LPDDR5' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Base Storage (Numeric GB for Filter)</label>
+            <input type="number" name="storage_gb" value="{{ phone.storage_gb if phone else 256 }}" class="form-input" required />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Storage Display Text</label>
+            <input type="text" name="storage_display" value="{{ phone.storage_display if phone else '256 GB UFS 3.1' }}" class="form-input" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Processor / Chipset / GPU</label>
+            <input type="text" name="processor" value="{{ phone.processor if phone else 'Qualcomm Snapdragon 7 Gen 3 (4 nm)' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Operating System (OS)</label>
+            <input type="text" name="os_name" value="{{ phone.os if phone else 'Android 14' }}" class="form-input" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Display, Cameras, Battery & Build -->
+      <div class="spec-category-card" style="padding:1.5rem;">
+        <h2 style="font-size:1.1rem;font-weight:800;color:var(--accent-secondary);margin-bottom:1.15rem;">
+          3. Display, Cameras, Battery, Charging &amp; Physical Dimensions
+        </h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Display Technology</label>
+            <input type="text" name="display_type" value="{{ phone.display_type if phone else 'AMOLED, 120Hz, HDR10+' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Display Size (Inches)</label>
+            <input type="number" step="0.01" name="display_size_inch" value="{{ phone.display_size_inch if phone else 6.7 }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Display Resolution</label>
+            <input type="text" name="display_resolution" value="{{ phone.display_resolution if phone else '1080 x 2400 pixels' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Refresh Rate</label>
+            <input type="text" name="refresh_rate" value="{{ phone.refresh_rate if phone else '120Hz' }}" class="form-input" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Rear Camera Setup</label>
+            <input type="text" name="main_camera" value="{{ phone.main_camera if phone else '50 MP (wide, OIS) + 8 MP (ultrawide)' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Front Camera</label>
+            <input type="text" name="selfie_camera" value="{{ phone.selfie_camera if phone else '32 MP (wide), 4K@30fps' }}" class="form-input" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Battery Capacity (mAh)</label>
+            <input type="number" name="battery_mah" value="{{ phone.battery_mah if phone else 5000 }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Charging</label>
+            <input type="text" name="charging" value="{{ phone.charging if phone else '67W wired fast charging' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Network Bands</label>
+            <input type="text" name="network" value="{{ phone.network if phone else 'GSM / HSPA / LTE / 5G' }}" class="form-input" />
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:1rem;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Dimensions</label>
+            <input type="text" name="dimensions" value="{{ phone.dimensions if phone else '162.1 x 74.8 x 7.9 mm' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Weight</label>
+            <input type="text" name="weight" value="{{ phone.weight if phone else '190 g' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Build Material</label>
+            <input type="text" name="build_material" value="{{ phone.build_material if phone else 'Glass front, aluminum frame, IP65' }}" class="form-input" />
+          </div>
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Available Colors</label>
+            <input type="text" name="colors" value="{{ phone.colors if phone else 'Midnight Black, Titanium Silver, Emerald Green' }}" class="form-input" />
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Product Image Upload or URL -->
+      <div class="spec-category-card" style="padding:1.5rem;">
+        <h2 style="font-size:1.1rem;font-weight:800;color:var(--accent-secondary);margin-bottom:0.85rem;">
+          4. Phone Image &amp; Editorial Summary
+        </h2>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:end;">
+          <div>
+            <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Image URL (Leave default to auto-generate branded SVG device illustration)</label>
+            <input type="text" name="image_url" id="phoneImageUrlInput" value="{{ phone.image_url if phone else '' }}" class="form-input" placeholder="/static/images/phones/..." />
+          </div>
+          <div>
+            <label class="btn-outline" style="cursor:pointer;">
+              📤 Upload Image File
+              <input type="file" accept="image/*" style="display:none;" onchange="uploadPhoneImageFile(this)" />
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top:1rem;">
+          <label style="font-size:0.78rem;font-weight:700;color:var(--text-secondary);">Overview / SEO Summary Paragraph</label>
+          <textarea name="summary_text" class="form-textarea" rows="3">{{ phone.summary_text if phone else '' }}</textarea>
+        </div>
+      </div>
+
+      <input type="hidden" name="variants_json" id="variantsJsonInput" value='{{ (phone.variants | tojson) if phone and phone.variants else "[]" }}' />
+
+      <div style="display:flex;justify-content:flex-end;gap:1rem;">
+        <a href="/admin" class="btn-outline" style="padding:0.75rem 1.5rem;">Cancel</a>
+        <button type="submit" class="btn-primary" style="padding:0.75rem 2rem;font-size:0.98rem;">
+          💾 Save Phone &amp; Update Price (PKR)
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <script src="/static/js/admin.js"></script>
+</body>
+</html>

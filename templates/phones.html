@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% from "macros.html" import render_phone_card %}
+
+{% block content %}
+<section class="section-block" style="padding-top:1.5rem;padding-bottom:2.75rem;">
+  <div class="container">
+
+    <!-- Phone Finder Header -->
+    <div class="finder-header-banner">
+      <div class="finder-title-wrap">
+        <div class="finder-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+          </svg>
+        </div>
+        <div>
+          <h1 class="section-title" style="font-size:1.5rem;">Phone Finder</h1>
+          <p class="section-subtitle">Find your perfect phone with advanced PKR price &amp; hardware filters</p>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:0.6rem;">
+        <a href="/compare" class="view-all-btn">Compare Selected Phones →</a>
+      </div>
+    </div>
+
+    <!-- Horizontal 2-Row Filter Bar (Matching Reference Image) -->
+    <form action="/phones" method="get" class="finder-filter-card">
+      <!-- Row 1: Brand, Price Range, RAM, Storage -->
+      <div class="finder-row-grid">
+        <div class="filter-field-group">
+          <label class="filter-field-label" for="filterBrand">Brand</label>
+          <select name="brand" id="filterBrand" class="filter-select">
+            <option value="">All Brands</option>
+            {% for b in brands %}
+              <option value="{{ b.slug }}" {% if b.slug in selected_brands %}selected{% endif %}>{{ b.name }} ({{ b.phone_count }})</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <label class="filter-field-label" for="filterPriceRange">Price Range (PKR)</label>
+          <select name="price_range" id="filterPriceRange" class="filter-select">
+            <option value="" {% if not price_range %}selected{% endif %}>Any Price</option>
+            <option value="0-50000" {% if price_range == '0-50000' %}selected{% endif %}>Under Rs. 50,000</option>
+            <option value="50000-100000" {% if price_range == '50000-100000' %}selected{% endif %}>Rs. 50,000 – Rs. 100,000</option>
+            <option value="100000-200000" {% if price_range == '100000-200000' %}selected{% endif %}>Rs. 100,000 – Rs. 200,000</option>
+            <option value="200000-350000" {% if price_range == '200000-350000' %}selected{% endif %}>Rs. 200,000 – Rs. 350,000</option>
+            <option value="350000-999999" {% if price_range == '350000-999999' %}selected{% endif %}>Above Rs. 350,000</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <label class="filter-field-label" for="filterRam">RAM</label>
+          <select name="ram" id="filterRam" class="filter-select">
+            <option value="">Any RAM</option>
+            {% for r in [4, 6, 8, 12, 16] %}
+              <option value="{{ r }}" {% if r in selected_rams %}selected{% endif %}>{{ r }} GB RAM</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <label class="filter-field-label" for="filterStorage">Storage</label>
+          <select name="storage" id="filterStorage" class="filter-select">
+            <option value="">Any Storage</option>
+            <option value="64" {% if 64 in selected_storages %}selected{% endif %}>64 GB</option>
+            <option value="128" {% if 128 in selected_storages %}selected{% endif %}>128 GB</option>
+            <option value="256" {% if 256 in selected_storages %}selected{% endif %}>256 GB</option>
+            <option value="512" {% if 512 in selected_storages %}selected{% endif %}>512 GB</option>
+            <option value="1024" {% if 1024 in selected_storages %}selected{% endif %}>1 TB (1024 GB)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 2: 5G, PTA Status, Data Status, Search + Reset -->
+      <div class="finder-row-grid row-2">
+        <div class="filter-field-group">
+          <label class="filter-field-label" for="filter5G">5G</label>
+          <select name="only_5g" id="filter5G" class="filter-select">
+            <option value="" {% if not only_5g %}selected{% endif %}>Any Network</option>
+            <option value="1" {% if only_5g %}selected{% endif %}>5G Supported Only</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <label class="filter-field-label" for="filterPta">PTA Status</label>
+          <select name="pta_status" id="filterPta" class="filter-select">
+            <option value="" {% if not pta_status %}selected{% endif %}>Any PTA Status</option>
+            <option value="PTA Approved" {% if pta_status == 'PTA Approved' %}selected{% endif %}>Official PTA Approved</option>
+            <option value="Non-PTA" {% if pta_status == 'Non-PTA' %}selected{% endif %}>Non-PTA / JV</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <label class="filter-field-label" for="filterDataStatus">Data &amp; Catalog Status</label>
+          <select name="data_status" id="filterDataStatus" class="filter-select">
+            <option value="" {% if not data_status %}selected{% endif %}>Any (Verified &amp; Demo)</option>
+            <option value="VERIFIED" {% if data_status == 'VERIFIED' %}selected{% endif %}>✓ VERIFIED ONLY</option>
+            <option value="DEMO" {% if data_status == 'DEMO' %}selected{% endif %}>DEMO / SAMPLE ONLY</option>
+            <option value="CURRENT" {% if data_status == 'CURRENT' %}selected{% endif %}>Current Models Only</option>
+            <option value="OUTDATED" {% if data_status == 'OUTDATED' %}selected{% endif %}>Outdated / Discontinued</option>
+            <option value="NEEDS_REVIEW" {% if data_status == 'NEEDS_REVIEW' %}selected{% endif %}>Needs Price Review</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <label class="filter-field-label" for="filterSale">Sale / Offer</label>
+          <div class="finder-btn-pair">
+            <select name="sale" id="filterSale" class="filter-select" style="flex:1;">
+              <option value="" {% if not sale_filter %}selected{% endif %}>All Phones</option>
+              <option value="on_sale" {% if sale_filter == 'on_sale' %}selected{% endif %}>🔥 On Sale</option>
+              <option value="no_sale" {% if sale_filter == 'no_sale' %}selected{% endif %}>No Sale</option>
+            </select>
+            <button type="submit" class="btn-finder-search">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              Search
+            </button>
+            <a href="/phones" class="btn-finder-reset">Reset</a>
+          </div>
+        </div>
+      </div>
+
+      {% if q or min_price or max_price or only_latest %}
+      <div style="margin-top:0.75rem;padding-top:0.65rem;border-top:1px solid rgba(148,163,184,0.12);display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;font-size:0.78rem;color:#94a3b8;">
+        <span>Keyword / Custom Price:</span>
+        <input type="text" name="q" value="{{ q }}" placeholder="Model or chipset..." class="filter-input" style="max-width:200px;height:32px;">
+        <input type="number" name="min_price" value="{{ min_price }}" placeholder="Min PKR" class="filter-input" style="max-width:120px;height:32px;">
+        <input type="number" name="max_price" value="{{ max_price }}" placeholder="Max PKR" class="filter-input" style="max-width:120px;height:32px;">
+        {% if only_latest %}<input type="hidden" name="only_latest" value="1">{% endif %}
+      </div>
+      {% endif %}
+    </form>
+
+    <!-- Results Count & Sort Toolbar -->
+    <div class="finder-results-toolbar">
+      <div style="display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;">
+        <div style="font-size:0.92rem;font-weight:700;color:#ffffff;">
+          Found <span style="color:#38bdf8;font-weight:800;">{{ phones|length }}</span> phones
+          {% if q %} matching <span style="color:#34d399;">"{{ q }}"</span>{% endif %}
+          {% if only_latest %}<span style="margin-left:8px;font-size:0.75rem;padding:2px 8px;border-radius:6px;background:rgba(56,189,248,0.18);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);">★ Latest &amp; Current Models</span>{% endif %}
+          {% if sale_filter == 'on_sale' %}<span style="margin-left:8px;font-size:0.75rem;padding:2px 8px;border-radius:6px;background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.4);">🔥 Filtered: On Sale</span>{% endif %}
+          {% if sale_filter == 'no_sale' %}<span style="margin-left:8px;font-size:0.75rem;padding:2px 8px;border-radius:6px;background:rgba(148,163,184,0.16);color:#cbd5e1;">Filtered: No Sale</span>{% endif %}
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-left:0.35rem;flex-wrap:wrap;">
+          <a href="/phones?only_latest=1" style="font-size:0.73rem;font-weight:700;padding:3px 9px;border-radius:999px;background:{% if only_latest %}rgba(56,189,248,0.22){% else %}rgba(15,23,42,0.75){% endif %};color:{% if only_latest %}#38bdf8{% else %}#94a3b8{% endif %};border:1px solid rgba(56,189,248,0.3);">★ Latest Current</a>
+          <a href="/phones?data_status=VERIFIED" style="font-size:0.73rem;font-weight:700;padding:3px 9px;border-radius:999px;background:{% if data_status == 'VERIFIED' %}rgba(16,185,129,0.22){% else %}rgba(15,23,42,0.75){% endif %};color:{% if data_status == 'VERIFIED' %}#34d399{% else %}#94a3b8{% endif %};border:1px solid rgba(16,185,129,0.3);">✓ Verified Only</a>
+          <a href="/phones?sale=on_sale" style="font-size:0.73rem;font-weight:700;padding:3px 9px;border-radius:999px;background:{% if sale_filter == 'on_sale' %}rgba(16,185,129,0.22){% else %}rgba(15,23,42,0.75){% endif %};color:{% if sale_filter == 'on_sale' %}#34d399{% else %}#94a3b8{% endif %};border:1px solid rgba(16,185,129,0.3);">🔥 On Sale</a>
+        </div>
+      </div>
+
+      <form action="/phones" method="get" style="display:flex;align-items:center;gap:0.55rem;">
+        <input type="hidden" name="q" value="{{ q }}">
+        {% for b in selected_brands %}<input type="hidden" name="brand" value="{{ b }}">{% endfor %}
+        <input type="hidden" name="price_range" value="{{ price_range }}">
+        <input type="hidden" name="data_status" value="{{ data_status }}">
+        <input type="hidden" name="sale" value="{{ sale_filter }}">
+        {% if only_latest %}<input type="hidden" name="only_latest" value="1">{% endif %}
+        {% if only_5g %}<input type="hidden" name="only_5g" value="1">{% endif %}
+        <label for="sortSelect" style="font-size:0.78rem;color:#94a3b8;font-weight:600;">Sort by:</label>
+        <select name="sort" id="sortSelect" class="filter-select" style="width:185px;height:34px;" onchange="this.form.submit()">
+          <option value="latest" {% if sort == 'latest' %}selected{% endif %}>Latest Releases</option>
+          <option value="popular" {% if sort == 'popular' %}selected{% endif %}>Most Popular</option>
+          <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High (PKR)</option>
+          <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low (PKR)</option>
+          <option value="ram_desc" {% if sort == 'ram_desc' %}selected{% endif %}>RAM: High to Low</option>
+        </select>
+      </form>
+    </div>
+
+    <!-- 5-Column Phone Results Grid -->
+    {% if phones %}
+      <div class="phones-5-grid">
+        {% for phone in phones %}
+          {{ render_phone_card(phone) }}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="detail-top-card" style="text-align:center;padding:3rem 1.5rem;">
+        <h3 style="font-size:1.25rem;color:#ffffff;margin-bottom:0.5rem;">No Matching Smartphones Found</h3>
+        <p style="color:#94a3b8;font-size:0.88rem;margin-bottom:1.1rem;">Try broadening your PKR price range or resetting the filters.</p>
+        <a href="/phones" class="btn-detail-primary">Reset All Filters</a>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

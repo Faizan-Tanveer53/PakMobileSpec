@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.pakmobile_secret
+.venv/
+venv/
+ENV/
+*.log
+*.db-wal
+*.db-shm
+backups/

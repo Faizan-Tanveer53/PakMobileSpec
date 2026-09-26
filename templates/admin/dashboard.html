@@ -1,0 +1,524 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <div class="admin-workspace-shell">
+
+    <!-- LEFT VERTICAL ADMIN SIDEBAR (MATCHING REFERENCE) -->
+    <aside class="admin-sidebar-card" aria-label="Admin Navigation">
+      <div class="admin-sidebar-brand">
+        <div class="brand-logo-icon" style="width:32px;height:32px;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.3">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+        </div>
+        <div>
+          <div style="font-size:0.92rem;font-weight:800;color:#ffffff;line-height:1.1;">Admin Panel</div>
+          <div style="font-size:0.65rem;color:#38bdf8;font-weight:700;">PKR &amp; SPEC CMS</div>
+        </div>
+      </div>
+
+      <a href="/admin" class="admin-sidebar-link">
+        <span>📊</span> Dashboard
+      </a>
+      <a href="#managePhonesSection" class="admin-sidebar-link active">
+        <span>📱</span> Manage Phones
+      </a>
+      <button type="button" onclick="document.getElementById('brandModal').showModal()" class="admin-sidebar-link" style="width:100%;border:none;background:transparent;cursor:pointer;text-align:left;">
+        <span>🏷️</span> Manage Brands
+      </button>
+      <a href="#auditSection" class="admin-sidebar-link">
+        <span>📈</span> Price Audit Trail
+      </a>
+      <a href="/admin/api/backup/json" class="admin-sidebar-link">
+        <span>⚙️</span> Export / Backup
+      </a>
+      <a href="/admin/logout" class="admin-sidebar-link" style="color:#f87171;margin-top:0.5rem;border-top:1px solid rgba(148,163,184,0.12);padding-top:0.75rem;">
+        <span>🚪</span> Logout ({{ admin_user }})
+      </a>
+    </aside>
+
+    <!-- RIGHT MAIN WORKSPACE (MATCHING REFERENCE) -->
+    <div>
+
+      <!-- Top Header Bar: Manage Phones + Add New Phone -->
+      <div class="finder-header-banner" id="managePhonesSection" style="margin-bottom:1rem;">
+        <div>
+          <h1 class="section-title" style="font-size:1.5rem;">Manage Phones</h1>
+          <p class="section-subtitle">Add, edit, verify, or update smartphone prices in Pakistani Rupees (PKR)</p>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+          <a href="/admin/phone/new" class="btn-detail-primary" style="padding:0.55rem 1.15rem;">+ Add New Phone</a>
+          <button type="button" onclick="document.getElementById('brandModal').showModal()" class="btn-detail-secondary" style="padding:0.55rem 0.95rem;">+ Add Brand</button>
+          <a href="/admin/api/backup/sqlite" class="btn-detail-secondary" style="padding:0.55rem 0.85rem;">💾 Backup DB</a>
+        </div>
+      </div>
+
+      <!-- Search & Filter Row -->
+      <div class="finder-filter-card" style="padding:0.9rem 1.1rem;margin-bottom:1.15rem;">
+        <form method="get" action="/admin" style="display:grid;grid-template-columns:1.5fr 1fr 0.9fr 0.9fr auto auto;gap:0.65rem;align-items:center;">
+          <input
+            type="search"
+            name="q"
+            value="{{ q }}"
+            class="filter-input"
+            placeholder="Search phones, brand, model, chipset, RAM..."
+          />
+          <select name="brand" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Brands ({{ brands | length }})</option>
+            {% for b in brands %}
+              <option value="{{ b.slug }}" {% if selected_brand == b.slug %}selected{% endif %}>{{ b.name }} ({{ b.phone_count }})</option>
+            {% endfor %}
+          </select>
+          <select name="status" class="filter-select" onchange="this.form.submit()">
+            <option value="">All Status</option>
+            <option value="demo" {% if selected_status == 'demo' %}selected{% endif %}>DEMO / SAMPLE</option>
+            <option value="verified" {% if selected_status == 'verified' %}selected{% endif %}>✓ VERIFIED</option>
+            <option value="current" {% if selected_status == 'current' %}selected{% endif %}>★ CURRENT / LATEST</option>
+            <option value="outdated" {% if selected_status == 'outdated' %}selected{% endif %}>OUTDATED / DISCONTINUED</option>
+            <option value="needs_review" {% if selected_status == 'needs_review' %}selected{% endif %}>NEEDS REVIEW</option>
+          </select>
+          <select name="sale" class="filter-select" onchange="this.form.submit()">
+            <option value="" {% if not selected_sale %}selected{% endif %}>All Sales</option>
+            <option value="on_sale" {% if selected_sale == 'on_sale' %}selected{% endif %}>🔥 On Sale</option>
+            <option value="no_sale" {% if selected_sale == 'no_sale' %}selected{% endif %}>No Sale</option>
+          </select>
+          <button type="submit" class="btn-finder-search" style="padding:0 1.1rem;">Filter</button>
+          <a href="/admin" class="btn-finder-reset" style="padding:0 0.9rem;">Reset</a>
+        </form>
+      </div>
+
+      <!-- 5 KPI Stat Cards (Including Active Sales) -->
+      <div class="admin-kpi-4-grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));">
+        <div class="admin-kpi-card">
+          <div class="admin-kpi-icon" style="background:rgba(37,99,235,0.22);border:1px solid rgba(56,189,248,0.35);color:#38bdf8;">📱</div>
+          <div>
+            <div class="admin-kpi-val">{{ total_phones }}</div>
+            <div class="admin-kpi-label">Total Smartphones</div>
+          </div>
+        </div>
+
+        <div class="admin-kpi-card">
+          <div class="admin-kpi-icon" style="background:rgba(139,92,246,0.22);border:1px solid rgba(167,139,250,0.35);color:#a78bfa;">🏷️</div>
+          <div>
+            <div class="admin-kpi-val">{{ brands | length }}</div>
+            <div class="admin-kpi-label">Brands</div>
+          </div>
+        </div>
+
+        <div class="admin-kpi-card">
+          <div class="admin-kpi-icon" style="background:rgba(16,185,129,0.22);border:1px solid rgba(52,211,153,0.35);color:#34d399;">✓</div>
+          <div>
+            <div class="admin-kpi-val" style="color:#34d399;" id="statVerifiedCount">{{ verified_count }}</div>
+            <div class="admin-kpi-label">Verified Data</div>
+          </div>
+        </div>
+
+        <div class="admin-kpi-card">
+          <div class="admin-kpi-icon" style="background:rgba(245,158,11,0.22);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;">⚠️</div>
+          <div>
+            <div class="admin-kpi-val" style="color:#fbbf24;" id="statDemoCount">{{ demo_count }}</div>
+            <div class="admin-kpi-label">Demo / Sample</div>
+          </div>
+        </div>
+
+        <div class="admin-kpi-card">
+          <div class="admin-kpi-icon" style="background:rgba(16,185,129,0.22);border:1px solid rgba(16,185,129,0.45);color:#34d399;">🔥</div>
+          <div>
+            <div class="admin-kpi-val" style="color:#34d399;" id="statActiveSalesCount">{{ active_sales_count }}</div>
+            <div class="admin-kpi-label">Active Sales</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10-Metric Data Quality & Catalog Health Dashboard -->
+      {% if dq_metrics %}
+      <div class="finder-filter-card" id="dataQualityDashboard" style="padding:1rem 1.2rem;margin-bottom:1.25rem;border:1px solid rgba(56,189,248,0.22);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;flex-wrap:wrap;gap:0.5rem;">
+          <div>
+            <h2 style="font-size:0.95rem;font-weight:800;color:#ffffff;margin:0;display:flex;align-items:center;gap:0.45rem;">
+              <span style="color:#38bdf8;">🛡️</span> Data Quality &amp; Catalog Health Monitor
+            </h2>
+            <p style="font-size:0.74rem;color:#94a3b8;margin:2px 0 0 0;">Real-time verification integrity, catalog lifecycle, and asset completeness audit across all 9 Pakistan smartphone brands</p>
+          </div>
+          <a href="/admin/export.csv" class="view-all-btn" style="font-size:0.75rem;">⬇ Export Catalog CSV</a>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:0.65rem;">
+          <a href="/admin" style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(15,23,42,0.75);border:1px solid rgba(148,163,184,0.16);display:block;">
+            <div style="font-size:0.68rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">1. Total Phones</div>
+            <div style="font-size:1.15rem;font-weight:900;color:#f8fafc;margin-top:2px;">{{ dq_metrics.total_phones }}</div>
+          </a>
+          <a href="/admin?status=verified" style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);display:block;">
+            <div style="font-size:0.68rem;color:#34d399;font-weight:700;text-transform:uppercase;">2. Verified Phones</div>
+            <div style="font-size:1.15rem;font-weight:900;color:#34d399;margin-top:2px;">{{ dq_metrics.verified_count }}</div>
+          </a>
+          <a href="/admin?status=demo" style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);display:block;">
+            <div style="font-size:0.68rem;color:#fbbf24;font-weight:700;text-transform:uppercase;">3. Demo / Sample</div>
+            <div style="font-size:1.15rem;font-weight:900;color:#fbbf24;margin-top:2px;">{{ dq_metrics.demo_count }}</div>
+          </a>
+          <a href="/admin?status=needs_review" style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(245,158,11,0.12);border:1px solid rgba(251,191,36,0.35);display:block;">
+            <div style="font-size:0.68rem;color:#fbbf24;font-weight:700;text-transform:uppercase;">4. Needs Review</div>
+            <div style="font-size:1.15rem;font-weight:900;color:#fbbf24;margin-top:2px;">{{ dq_metrics.needs_review_count }}</div>
+          </a>
+          <a href="/admin?status=current" style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(56,189,248,0.12);border:1px solid rgba(56,189,248,0.35);display:block;">
+            <div style="font-size:0.68rem;color:#38bdf8;font-weight:700;text-transform:uppercase;">5. Latest / Current</div>
+            <div style="font-size:1.15rem;font-weight:900;color:#38bdf8;margin-top:2px;">{{ dq_metrics.latest_current_count }}</div>
+          </a>
+          <a href="/admin?status=outdated" style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.32);display:block;">
+            <div style="font-size:0.68rem;color:#f87171;font-weight:700;text-transform:uppercase;">6. Outdated / Legacy</div>
+            <div style="font-size:1.15rem;font-weight:900;color:#f87171;margin-top:2px;">{{ dq_metrics.outdated_count }}</div>
+          </a>
+          <div style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(15,23,42,0.75);border:1px solid rgba(148,163,184,0.16);">
+            <div style="font-size:0.68rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">7. Missing Source URL</div>
+            <div style="font-size:1.15rem;font-weight:900;color:#cbd5e1;margin-top:2px;">{{ dq_metrics.missing_source_count }}</div>
+          </div>
+          <div style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(15,23,42,0.75);border:1px solid rgba(148,163,184,0.16);">
+            <div style="font-size:0.68rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">8. Missing Image</div>
+            <div style="font-size:1.15rem;font-weight:900;color:{% if dq_metrics.missing_image_count == 0 %}#34d399{% else %}#f87171{% endif %};margin-top:2px;">{{ dq_metrics.missing_image_count }}</div>
+          </div>
+          <div style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(15,23,42,0.75);border:1px solid rgba(148,163,184,0.16);">
+            <div style="font-size:0.68rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">9. Missing Price</div>
+            <div style="font-size:1.15rem;font-weight:900;color:{% if dq_metrics.missing_price_count == 0 %}#34d399{% else %}#f87171{% endif %};margin-top:2px;">{{ dq_metrics.missing_price_count }}</div>
+          </div>
+          <div style="padding:0.6rem 0.75rem;border-radius:10px;background:rgba(15,23,42,0.75);border:1px solid rgba(148,163,184,0.16);">
+            <div style="font-size:0.68rem;color:#94a3b8;font-weight:700;text-transform:uppercase;">10. Missing Specs</div>
+            <div style="font-size:1.15rem;font-weight:900;color:{% if dq_metrics.missing_specs_count == 0 %}#34d399{% else %}#f87171{% endif %};margin-top:2px;">{{ dq_metrics.missing_specs_count }}</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Phone Management Table (Matching Reference + Sale Columns) -->
+      <div class="admin-table-card" style="margin-bottom:1.75rem;overflow-x:auto;">
+        <table class="admin-data-table" style="min-width:1060px;">
+          <thead>
+            <tr>
+              <th style="width:48px;">ID</th>
+              <th>Phone</th>
+              <th>Brand</th>
+              <th style="width:210px;">Regular Price (PKR)</th>
+              <th style="width:195px;">Sale Price / Discount / Status</th>
+              <th style="width:170px;">Data Status &amp; Source</th>
+              <th style="width:115px;">Last Updated</th>
+              <th style="width:215px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in phones %}
+            <tr id="admin-row-{{ p.id }}">
+              <td style="color:#64748b;font-weight:700;">#{{ p.id }}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:0.7rem;">
+                  <img src="{{ p.image_url }}" alt="{{ p.model_name }}" style="width:36px;height:46px;object-fit:contain;border-radius:6px;background:#070d19;padding:2px;border:1px solid rgba(56,189,248,0.18);" />
+                  <div>
+                    <a href="/phone/{{ p.slug }}" target="_blank" style="font-weight:800;font-size:0.88rem;color:#ffffff;display:block;">
+                      {{ p.model_name }} ↗
+                    </a>
+                    <span style="font-size:0.72rem;color:#94a3b8;">{{ p.ram_display }} / {{ p.storage_display }} • {{ p.pta_status }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span style="font-weight:700;color:#cbd5e1;">{{ p.brand_name }}</span>
+              </td>
+              <td>
+                <div style="display:flex;align-items:center;gap:0.35rem;">
+                  <span style="font-size:0.74rem;font-weight:700;color:#34d399;">Rs.</span>
+                  <input
+                    type="number"
+                    id="price-input-{{ p.id }}"
+                    value="{{ p.price_pkr }}"
+                    class="filter-input"
+                    style="width:108px;height:32px;padding:0 0.45rem;font-weight:800;color:#34d399;"
+                    step="500"
+                  />
+                  <button
+                    type="button"
+                    onclick="quickUpdatePrice({{ p.id }})"
+                    class="btn-admin-edit"
+                    title="Save Regular PKR Price"
+                  >Save</button>
+                </div>
+                <div id="price-feedback-{{ p.id }}" style="font-size:0.68rem;color:#34d399;margin-top:2px;display:none;"></div>
+              </td>
+              <td id="sale-cell-{{ p.id }}">
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                  <div>
+                    {% if p.sale_status == 'ON SALE' %}
+                      <span class="status-pill-mini verified" style="background:rgba(16,185,129,0.22);color:#34d399;border:1px solid rgba(16,185,129,0.45);">🔥 ON SALE ({{ p.discount_percent }}% OFF)</span>
+                    {% elif p.sale_status == 'SCHEDULED' %}
+                      <span class="status-pill-mini" style="background:rgba(56,189,248,0.18);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);">⏳ SCHEDULED ({{ p.configured_discount_percent }}% OFF)</span>
+                    {% elif p.sale_status == 'EXPIRED' %}
+                      <span class="status-pill-mini demo" style="background:rgba(239,68,68,0.16);color:#f87171;border:1px solid rgba(239,68,68,0.4);">⌛ EXPIRED</span>
+                    {% else %}
+                      <span class="status-pill-mini" style="background:rgba(148,163,184,0.12);color:#94a3b8;">NO SALE</span>
+                    {% endif %}
+                  </div>
+                  <div style="font-size:0.75rem;color:#cbd5e1;">
+                    {% if p.sale_price_pkr %}
+                      Sale: <strong style="color:#34d399;">{{ format_pkr(p.sale_price_pkr) }}</strong>
+                      {% if p.sale_label %}<span style="color:#38bdf8;">• {{ p.sale_label }}</span>{% endif %}
+                    {% else %}
+                      <span style="color:#64748b;">No sale price set</span>
+                    {% endif %}
+                  </div>
+                  <div style="display:flex;gap:0.45rem;margin-top:1px;">
+                    <button
+                      type="button"
+                      onclick='openSaleModal({{ p.id }}, {{ (p.brand_name ~ " " ~ p.model_name) | tojson }}, {{ p.price_pkr }}, {{ p.sale_active | default(0) }}, {{ p.sale_price_pkr | tojson }}, {{ p.sale_label | tojson }}, {{ p.sale_start_at | tojson }}, {{ p.sale_end_at | tojson }})'
+                      style="background:none;border:none;color:#34d399;font-size:0.7rem;font-weight:700;cursor:pointer;text-decoration:underline;"
+                    >Manage Sale</button>
+                    {% if p.sale_active == 1 %}
+                    <button
+                      type="button"
+                      onclick="quickToggleSale({{ p.id }}, 0)"
+                      style="background:none;border:none;color:#f87171;font-size:0.7rem;font-weight:700;cursor:pointer;text-decoration:underline;"
+                    >Turn OFF</button>
+                    {% else %}
+                    <button
+                      type="button"
+                      onclick='openSaleModal({{ p.id }}, {{ (p.brand_name ~ " " ~ p.model_name) | tojson }}, {{ p.price_pkr }}, 1, {{ p.sale_price_pkr | tojson }}, {{ p.sale_label | tojson }}, {{ p.sale_start_at | tojson }}, {{ p.sale_end_at | tojson }})'
+                      style="background:none;border:none;color:#38bdf8;font-size:0.7rem;font-weight:700;cursor:pointer;text-decoration:underline;"
+                    >Turn ON</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div id="status-badge-wrap-{{ p.id }}" style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
+                  {% if p.is_demo_data %}
+                    <span class="status-pill-mini demo">DEMO / SAMPLE</span>
+                  {% else %}
+                    <span class="status-pill-mini verified">✓ VERIFIED</span>
+                  {% endif %}
+                  {% if p.catalog_status == 'OUTDATED' %}
+                    <span class="status-pill-mini" style="background:rgba(239,68,68,0.16);color:#f87171;font-size:0.62rem;">OUTDATED</span>
+                  {% elif p.catalog_status == 'NEEDS_REVIEW' %}
+                    <span class="status-pill-mini" style="background:rgba(245,158,11,0.16);color:#fbbf24;font-size:0.62rem;">NEEDS REVIEW</span>
+                  {% elif p.catalog_status == 'CURRENT' %}
+                    <span class="status-pill-mini" style="background:rgba(56,189,248,0.15);color:#38bdf8;font-size:0.62rem;">CURRENT</span>
+                  {% endif %}
+                </div>
+                <div style="font-size:0.68rem;color:#94a3b8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:165px;" title="{{ p.source_name }}">
+                  {{ p.source_name or 'Demo Seed' }}
+                </div>
+                <div style="display:flex;gap:0.45rem;margin-top:3px;">
+                  <button
+                    type="button"
+                    onclick='openVerifyModal({{ p.id }}, {{ p.model_name | tojson }}, {{ p.data_status | tojson }}, {{ p.source_name | tojson }}, {{ p.source_url | tojson }}, {{ p.verification_notes | tojson }})'
+                    style="background:none;border:none;color:#38bdf8;font-size:0.7rem;font-weight:700;cursor:pointer;text-decoration:underline;"
+                  >Verify</button>
+                  <button
+                    type="button"
+                    onclick="toggleVerifyStatus({{ p.id }})"
+                    style="background:none;border:none;color:#94a3b8;font-size:0.7rem;cursor:pointer;text-decoration:underline;"
+                  >Toggle</button>
+                </div>
+              </td>
+              <td id="updated-cell-{{ p.id }}" style="font-size:0.76rem;color:#94a3b8;">
+                <strong style="color:#e2e8f0;display:block;">{{ format_date_human(p.updated_at) }}</strong>
+                {% if p.last_verified_at %}
+                  <span style="font-size:0.66rem;color:#34d399;">✓ Verif: {{ format_date_human(p.last_verified_at) }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <div style="display:flex;gap:0.35rem;align-items:center;flex-wrap:wrap;">
+                  <a href="/admin/phone/{{ p.id }}/edit" class="btn-admin-edit">Edit</a>
+                  <button
+                    type="button"
+                    onclick='openSaleModal({{ p.id }}, {{ (p.brand_name ~ " " ~ p.model_name) | tojson }}, {{ p.price_pkr }}, {{ p.sale_active | default(0) }}, {{ p.sale_price_pkr | tojson }}, {{ p.sale_label | tojson }}, {{ p.sale_start_at | tojson }}, {{ p.sale_end_at | tojson }})'
+                    class="btn-admin-edit"
+                    style="border-color:rgba(16,185,129,0.45);color:#34d399;"
+                    title="Manage Sale / Offer"
+                  >Sale</button>
+                  <button type="button" onclick="deletePhone({{ p.id }}, '{{ p.brand_name }} {{ p.model_name }}')" class="btn-admin-delete">Delete</button>
+                  <button type="button" onclick="duplicatePhone({{ p.id }})" class="btn-card-compare" style="padding:0.32rem 0.5rem;font-size:0.7rem;" title="Duplicate">Copy</button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Recent PKR Price Audit Trail & User Reports -->
+      <div id="auditSection" style="display:grid;grid-template-columns:1fr 1fr;gap:1.15rem;">
+        <div class="spec-detail-table-card">
+          <div class="spec-detail-table-header">📈 Recent PKR Price Updates &amp; Audit Trail</div>
+          <table class="spec-detail-table">
+            <tbody>
+              {% for h in recent_history %}
+              <tr>
+                <th>{{ h.brand_name }} {{ h.model_name }}</th>
+                <td>
+                  {{ format_pkr(h.old_price_pkr) }} → <strong style="color:#34d399;">{{ format_pkr(h.new_price_pkr) }}</strong>
+                  <div style="font-size:0.72rem;color:#64748b;">{{ h.note }} • {{ h.changed_at }}</div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="spec-detail-table-card">
+          <div class="spec-detail-table-header">🚩 User Data Feedback &amp; Correction Reports</div>
+          <table class="spec-detail-table">
+            <tbody>
+              {% if feedback_reports %}
+                {% for f in feedback_reports %}
+                <tr>
+                  <th>{{ f.brand_name }} {{ f.model_name }}</th>
+                  <td>
+                    <strong>{{ f.issue_type }}:</strong> {{ f.suggested_value }}
+                    <div style="font-size:0.72rem;color:#94a3b8;">{{ f.reporter_note }}</div>
+                  </td>
+                </tr>
+                {% endfor %}
+              {% else %}
+                <tr><td colspan="2" style="color:#94a3b8;text-align:center;padding:1.2rem;">No user correction reports pending.</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Explicit Verification & Source Provenance Modal (<dialog>) -->
+<dialog id="verifyModal" style="margin:auto;background:#0d1628;color:#f8fafc;border:1px solid rgba(56,189,248,0.3);border-radius:16px;padding:1.5rem;width:92%;max-width:500px;">
+  <h3 style="font-size:1.15rem;font-weight:800;margin-bottom:0.35rem;">✓ Update Verification Status &amp; Source</h3>
+  <p id="verifyModalPhoneTitle" style="font-size:0.84rem;color:#38bdf8;font-weight:700;margin-bottom:0.9rem;"></p>
+  <form id="verifyModalForm" onsubmit="submitVerifyModal(event)" style="display:flex;flex-direction:column;gap:0.75rem;">
+    <input type="hidden" id="verifyModalPhoneId" name="phone_id" />
+    <div>
+      <label class="filter-field-label">Data Verification Status *</label>
+      <select id="verifyModalStatus" name="data_status" class="filter-select" required>
+        <option value="DEMO/SAMPLE">⚠️ DEMO / SAMPLE DATA (Unverified)</option>
+        <option value="VERIFIED">✓ VERIFIED DATA (Explicitly Verified by Admin)</option>
+      </select>
+    </div>
+    <div>
+      <label class="filter-field-label">Catalog Lifecycle Status *</label>
+      <select id="verifyModalCatalogStatus" name="catalog_status" class="filter-select">
+        <option value="CURRENT">★ CURRENT (Active 2024–2026 Lineup)</option>
+        <option value="OLDER_AVAILABLE">OLDER AVAILABLE (Previous Gen Still Sold)</option>
+        <option value="OUTDATED">OUTDATED / DISCONTINUED</option>
+        <option value="NEEDS_REVIEW">NEEDS REVIEW (Import / Price Fluctuation)</option>
+      </select>
+    </div>
+    <div>
+      <label class="filter-field-label">Source Name *</label>
+      <input type="text" id="verifyModalSourceName" name="source_name" class="filter-input" required />
+    </div>
+    <div>
+      <label class="filter-field-label">Source URL</label>
+      <input type="url" id="verifyModalSourceUrl" name="source_url" class="filter-input" />
+    </div>
+    <div>
+      <label class="filter-field-label">Verification Notes</label>
+      <input type="text" id="verifyModalNotes" name="verification_notes" class="filter-input" />
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.4rem;">
+      <button type="button" onclick="document.getElementById('verifyModal').close()" class="btn-finder-reset" style="padding:0 0.9rem;">Cancel</button>
+      <button type="submit" class="btn-finder-search" style="padding:0 1.1rem;">Save Verification</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Add / Edit Brand Modal (<dialog>) -->
+<dialog id="brandModal" style="margin:auto;background:#0d1628;color:#f8fafc;border:1px solid rgba(56,189,248,0.3);border-radius:16px;padding:1.5rem;width:92%;max-width:460px;">
+  <h3 style="font-size:1.15rem;font-weight:800;margin-bottom:0.85rem;">Add or Update Mobile Brand</h3>
+  <form id="brandModalForm" onsubmit="saveBrandForm(event)" style="display:flex;flex-direction:column;gap:0.75rem;">
+    <div>
+      <label class="filter-field-label">Brand Name *</label>
+      <input type="text" name="name" class="filter-input" required />
+    </div>
+    <div>
+      <label class="filter-field-label">Country</label>
+      <input type="text" name="country" class="filter-input" />
+    </div>
+    <div>
+      <label class="filter-field-label">Tagline</label>
+      <input type="text" name="tagline" class="filter-input" />
+    </div>
+    <div>
+      <label class="filter-field-label">Accent Color</label>
+      <input type="color" name="accent_color" value="#3b82f6" class="filter-input" />
+    </div>
+    <div>
+      <label class="filter-field-label">Description</label>
+      <input type="text" name="description" class="filter-input" />
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:0.5rem;margin-top:0.4rem;">
+      <button type="button" onclick="document.getElementById('brandModal').close()" class="btn-finder-reset" style="padding:0 0.9rem;">Cancel</button>
+      <button type="submit" class="btn-finder-search" style="padding:0 1.1rem;">Save Brand</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Sale / Offer Management Modal (<dialog>) -->
+<dialog id="saleModal" style="margin:auto;background:#0d1628;color:#f8fafc;border:1px solid rgba(16,185,129,0.45);border-radius:16px;padding:1.5rem;width:92%;max-width:520px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.35rem;">
+    <h3 style="font-size:1.15rem;font-weight:800;color:#34d399;margin:0;">🔥 Manage Sale / Offer</h3>
+    <span id="saleModalLiveDiscount" style="font-size:0.78rem;font-weight:800;padding:3px 9px;border-radius:6px;background:rgba(16,185,129,0.2);color:#34d399;border:1px solid rgba(16,185,129,0.45);">Discount: 0% OFF</span>
+  </div>
+  <p id="saleModalPhoneTitle" style="font-size:0.84rem;color:#38bdf8;font-weight:700;margin-bottom:0.9rem;"></p>
+
+  <form id="saleModalForm" onsubmit="submitSaleModal(event)" style="display:flex;flex-direction:column;gap:0.75rem;">
+    <input type="hidden" id="saleModalPhoneId" name="phone_id" />
+    <input type="hidden" id="saleModalRegularPrice" />
+
+    <div style="padding:0.65rem 0.85rem;border-radius:10px;background:rgba(15,23,42,0.8);border:1px solid rgba(148,163,184,0.18);display:flex;align-items:center;justify-content:space-between;">
+      <label style="display:flex;align-items:center;gap:0.55rem;font-size:0.88rem;font-weight:800;color:#ffffff;cursor:pointer;">
+        <input type="checkbox" id="saleModalActive" name="sale_active" value="1" onchange="recalculateModalSaleDiscount()" />
+        <span>Enable Sale Offer</span>
+      </label>
+      <div style="font-size:0.78rem;color:#94a3b8;">
+        Original: <strong id="saleModalRegularDisplay" style="color:#ffffff;">Rs. 0</strong>
+      </div>
+    </div>
+
+    <div>
+      <label class="filter-field-label">Sale Price (PKR) *</label>
+      <input type="number" id="saleModalPrice" name="sale_price_pkr" class="filter-input" style="font-weight:800;color:#34d399;" placeholder="Must be lower than Original Price" oninput="recalculateModalSaleDiscount()" />
+    </div>
+
+    <div>
+      <label class="filter-field-label">Sale Label (optional)</label>
+      <input type="text" id="saleModalLabel" name="sale_label" class="filter-input" placeholder="e.g. Eid Sale, Ramadan Offer, Flash Deal" />
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;">
+      <div>
+        <label class="filter-field-label">Start Date / Time (optional)</label>
+        <input type="datetime-local" id="saleModalStart" name="sale_start_at" class="filter-input" />
+      </div>
+      <div>
+        <label class="filter-field-label">End Date / Time (optional)</label>
+        <input type="datetime-local" id="saleModalEnd" name="sale_end_at" class="filter-input" />
+      </div>
+    </div>
+
+    <div id="saleModalError" style="display:none;padding:0.55rem 0.75rem;border-radius:8px;background:rgba(239,68,68,0.16);border:1px solid rgba(239,68,68,0.45);color:#f87171;font-size:0.78rem;font-weight:700;"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:0.5rem;margin-top:0.45rem;">
+      <button type="button" onclick="clearModalPhoneSale()" class="btn-finder-reset" style="padding:0 0.85rem;color:#f87171;border-color:rgba(248,113,113,0.4);">✕ Clear Sale</button>
+      <div style="display:flex;gap:0.5rem;">
+        <button type="button" onclick="document.getElementById('saleModal').close()" class="btn-finder-reset" style="padding:0 0.9rem;">Cancel</button>
+        <button type="submit" class="btn-finder-search" style="padding:0 1.1rem;background:linear-gradient(135deg,#10b981,#059669);">Save Sale</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="/static/js/admin.js"></script>
+{% endblock %}

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 430" width="1360" height="860">
+  <defs>
+    <radialGradient id="heroGlow" cx="55%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2563eb" stop-opacity="0.45"/>
+      <stop offset="55%" stop-color="#0ea5e9" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#060b16" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="goldTi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d6b89c"/>
+      <stop offset="50%" stop-color="#9c7a5b"/>
+      <stop offset="100%" stop-color="#5c4430"/>
+    </linearGradient>
+    <linearGradient id="grayTi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#cbd5e1"/>
+      <stop offset="50%" stop-color="#64748b"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="darkTi" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="heroScreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa"/>
+      <stop offset="35%" stop-color="#3b82f6"/>
+      <stop offset="70%" stop-color="#1e1b4b"/>
+      <stop offset="100%" stop-color="#090d16"/>
+    </linearGradient>
+    <filter id="heroDrop" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#000000" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+
+  <!-- Studio Floor Glow & Horizon Line -->
+  <ellipse cx="360" cy="210" rx="310" ry="185" fill="url(#heroGlow)"/>
+  <ellipse cx="360" cy="378" rx="280" ry="18" fill="#38bdf8" fill-opacity="0.18"/>
+  <line x1="60" y1="378" x2="640" y2="378" stroke="#38bdf8" stroke-opacity="0.35" stroke-width="1.5"/>
+
+  <!-- Phone 1 (Far Left): Mint/Silver Titanium Back -->
+  <g filter="url(#heroDrop)" transform="translate(85, 88) scale(0.84)">
+    <rect x="0" y="0" width="128" height="295" rx="24" fill="#94a3b8" stroke="#e2e8f0" stroke-width="2"/>
+    <rect x="10" y="12" width="56" height="58" rx="14" fill="#64748b" stroke="#cbd5e1" stroke-width="1.2"/>
+    <circle cx="25" cy="27" r="10.5" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+    <circle cx="25" cy="53" r="10.5" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+    <circle cx="50" cy="40" r="10.5" fill="#0f172a" stroke="#cbd5e1" stroke-width="2"/>
+  </g>
+
+  <!-- Phone 2 (Mid Left): Galaxy S24 Ultra Titanium Gray Back -->
+  <g filter="url(#heroDrop)" transform="translate(155, 62) scale(0.92)">
+    <rect x="0" y="0" width="136" height="310" rx="10" fill="url(#grayTi)" stroke="#f1f5f9" stroke-width="2.2"/>
+    <rect x="12" y="14" width="64" height="68" rx="16" fill="#475569" stroke="#cbd5e1" stroke-width="1.5"/>
+    <circle cx="29" cy="31" r="12" fill="#090d16" stroke="#e2e8f0" stroke-width="2.2"/>
+    <circle cx="29" cy="63" r="12" fill="#090d16" stroke="#e2e8f0" stroke-width="2.2"/>
+    <circle cx="58" cy="47" r="12" fill="#090d16" stroke="#e2e8f0" stroke-width="2.2"/>
+    <circle cx="58" cy="25" r="4.5" fill="#fef3c7"/>
+  </g>
+
+  <!-- Phone 3 (Center): iPhone 16 Pro Max Black Titanium Back -->
+  <g filter="url(#heroDrop)" transform="translate(238, 42)">
+    <rect x="0" y="0" width="144" height="328" rx="28" fill="url(#darkTi)" stroke="#94a3b8" stroke-width="2.5"/>
+    <rect x="14" y="14" width="68" height="72" rx="18" fill="#1e293b" stroke="#64748b" stroke-width="1.5"/>
+    <circle cx="32" cy="33" r="13.5" fill="#090d16" stroke="#94a3b8" stroke-width="2.5"/>
+    <circle cx="32" cy="33" r="5" fill="#1e3a8a"/>
+    <circle cx="32" cy="67" r="13.5" fill="#090d16" stroke="#94a3b8" stroke-width="2.5"/>
+    <circle cx="32" cy="67" r="5" fill="#1e3a8a"/>
+    <circle cx="64" cy="50" r="13.5" fill="#090d16" stroke="#94a3b8" stroke-width="2.5"/>
+    <circle cx="64" cy="50" r="5" fill="#1e3a8a"/>
+    <circle cx="64" cy="26" r="5" fill="#fde68a"/>
+    <circle cx="64" cy="74" r="6" fill="#334155"/>
+    <circle cx="72" cy="158" r="15" fill="#ffffff" fill-opacity="0.15"/>
+  </g>
+
+  <!-- Phone 4 (Right): Side Profile Cyan Edge Phone -->
+  <g filter="url(#heroDrop)" transform="translate(462, 56) scale(0.94)">
+    <rect x="0" y="0" width="126" height="318" rx="26" fill="#090d16" stroke="#38bdf8" stroke-width="2.5"/>
+    <rect x="6" y="6" width="114" height="306" rx="22" fill="#0284c7"/>
+    <path d="M 6 60 Q 80 140 120 260 L 120 312 L 6 312 Z" fill="#0369a1"/>
+  </g>
+
+  <!-- Phone 5 (Front Hero Main Screen): Glowing Blue/Violet Pro Display -->
+  <g filter="url(#heroDrop)" transform="translate(348, 36)">
+    <rect x="0" y="0" width="152" height="336" rx="28" fill="#050811" stroke="#cbd5e1" stroke-width="3"/>
+    <rect x="6" y="6" width="140" height="324" rx="24" fill="url(#heroScreen)"/>
+    <!-- Luminous Diagonal Ribbon Wallpaper -->
+    <polygon points="6,40 146,145 146,245 6,130" fill="#93c5fd" fill-opacity="0.35"/>
+    <polygon points="6,130 146,235 146,315 6,215" fill="#38bdf8" fill-opacity="0.25"/>
+    <!-- Dynamic Island -->
+    <rect x="52" y="15" width="48" height="12" rx="6" fill="#050811"/>
+    <circle cx="90" cy="21" r="2.8" fill="#1e3a8a"/>
+  </g>
+</svg>

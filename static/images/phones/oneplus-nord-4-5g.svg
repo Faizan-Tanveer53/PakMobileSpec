@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 380" width="720" height="760">
+  <defs>
+    <linearGradient id="back-oneplus-nord-4-5g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="scr-oneplus-nord-4-5g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ef4444"/>
+      <stop offset="50%" stop-color="#450a0a"/>
+      <stop offset="100%" stop-color="#050811"/>
+    </linearGradient>
+    <radialGradient id="glow-oneplus-nord-4-5g" cx="50%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="#f87171" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#f87171" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="drop-oneplus-nord-4-5g" x="-20%" y="-15%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000000" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- Ambient Backlight Glow -->
+  <circle cx="185" cy="190" r="145" fill="url(#glow-oneplus-nord-4-5g)"/>
+
+  <!-- REAR CHASSIS (Left Device Showing Exact Model Camera Architecture) -->
+  <g filter="url(#drop-oneplus-nord-4-5g)">
+    <rect x="54" y="42" width="136" height="286" rx="22" fill="url(#back-oneplus-nord-4-5g)" stroke="#34d399" stroke-width="2.5"/>
+    <!-- Metallic Glass Diagonal Sheen -->
+    <path d="M 60 44 L 145 44 L 85 326 L 56 326 Z" fill="#ffffff" fill-opacity="0.07"/>
+    
+        <!-- OnePlus 12 Left-Aligned Watch Dial Camera -->
+        <rect x="54" y="64" width="45" height="80" rx="8" fill="#1e293b"/>
+        <circle cx="105" cy="104" r="42" fill="#090d16" stroke="#34d399" stroke-width="2.5"/>
+        <circle cx="91" cy="90" r="10" fill="#000" stroke="#64748b" stroke-width="1.5"/>
+        <circle cx="119" cy="90" r="10" fill="#000" stroke="#64748b" stroke-width="1.5"/>
+        <circle cx="91" cy="118" r="10" fill="#000" stroke="#64748b" stroke-width="1.5"/>
+        <text x="120" y="122" text-anchor="middle" fill="#fff" font-size="9" font-weight="800">H</text>
+        
+    <text x="122" y="302" text-anchor="middle" fill="#ffffff" fill-opacity="0.55" font-family="Inter, system-ui, sans-serif" font-size="9.5" font-weight="800" letter-spacing="2">ONEPLUS</text>
+  </g>
+
+  <!-- FRONT DISPLAY (Right Overlapping Device Showing Screen & Wallpaper) -->
+  <g filter="url(#drop-oneplus-nord-4-5g)">
+    <rect x="172" y="38" width="138" height="292" rx="22" fill="#050811" stroke="#34d399" stroke-width="2.5"/>
+    <rect x="177" y="43" width="128" height="282" rx="19" fill="url(#scr-oneplus-nord-4-5g)"/>
+    <!-- Dynamic Abstract Wallpaper Graphic -->
+    <circle cx="241" cy="165" r="56" fill="#f87171" fill-opacity="0.28"/>
+    <path d="M 177 220 Q 241 155 305 240 L 305 325 L 177 325 Z" fill="#94a3b8" fill-opacity="0.32"/>
+    <circle cx="241" cy="57" r="4.5" fill="#050811"/>
+    <!-- Clean Model Signature on Screen -->
+    <text x="241" y="102" text-anchor="middle" fill="#ffffff" fill-opacity="0.8" font-family="Inter, system-ui, sans-serif" font-size="8.5" font-weight="700" letter-spacing="2">ONEPLUS</text>
+    <text x="241" y="122" text-anchor="middle" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="12.5" font-weight="800">OnePlus Nord 4 5G</text>
+  </g>
+</svg>

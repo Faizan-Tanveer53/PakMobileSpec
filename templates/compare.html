@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section-block" style="padding-top:1.5rem;padding-bottom:2.75rem;">
+  <div class="container">
+
+    <!-- Compare Header -->
+    <div class="finder-header-banner" style="margin-bottom:1.15rem;">
+      <div class="finder-title-wrap">
+        <div class="finder-icon-box">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3">
+            <line x1="18" y1="20" x2="18" y2="10"></line>
+            <line x1="12" y1="20" x2="12" y2="4"></line>
+            <line x1="6" y1="20" x2="6" y2="14"></line>
+          </svg>
+        </div>
+        <div>
+          <h1 class="section-title" style="font-size:1.45rem;">Compare Phones</h1>
+          <p class="section-subtitle">Compare specifications &amp; Pakistani Rupee (PKR) prices side by side</p>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:0.55rem;flex-wrap:wrap;">
+        <a href="/compare?phones=apple-iphone-16-pro-max,samsung-galaxy-s24-ultra,xiaomi-14-ultra" class="view-all-btn">Flagship Trio</a>
+        <a href="/compare?phones=samsung-galaxy-a55-5g,vivo-v40-pro,xiaomi-redmi-note-13-pro-plus-5g" class="view-all-btn">Mid-Range 5G</a>
+        <a href="/phones" class="view-all-btn">+ Browse All Phones</a>
+      </div>
+    </div>
+
+    <!-- 2-Column Compare Workspace (Matching Reference Image) -->
+    <div class="compare-workspace-grid">
+
+      <!-- Left Vertical Category Sidebar -->
+      <aside class="specs-sidebar-nav" aria-label="Comparison Categories">
+        <a href="#cmp-overview" class="specs-tab-btn active"><span>📋</span> Overview</a>
+        <a href="#cmp-display" class="specs-tab-btn"><span>📱</span> Display</a>
+        <a href="#cmp-performance" class="specs-tab-btn"><span>⚡</span> Performance</a>
+        <a href="#cmp-camera" class="specs-tab-btn"><span>📷</span> Camera</a>
+        <a href="#cmp-battery" class="specs-tab-btn"><span>🔋</span> Battery</a>
+        <a href="#cmp-connectivity" class="specs-tab-btn"><span>📡</span> Connectivity</a>
+        <a href="#cmp-status" class="specs-tab-btn"><span>🛡️</span> Price &amp; Status</a>
+      </aside>
+
+      <!-- Right Comparison Matrix Table -->
+      <div class="compare-table-card">
+        <table class="compare-matrix-table">
+          <thead>
+            <tr id="cmp-overview">
+              <th style="vertical-align:top;">
+                <div style="font-size:0.88rem;color:#ffffff;font-weight:800;margin-bottom:0.25rem;">Selected Models</div>
+                <div style="font-size:0.72rem;color:#94a3b8;font-weight:500;">Compare up to 4 phones</div>
+              </th>
+
+              {% for p in compared_phones %}
+              <td style="min-width:215px;">
+                <div class="compare-phone-header-box">
+                  {% set remaining = [] %}
+                  {% for other in compared_phones if other.slug != p.slug %}
+                    {% set _ = remaining.append(other.slug) %}
+                  {% endfor %}
+                  <a href="/compare?phones={{ remaining|join(',') }}" class="compare-remove-x" title="Remove {{ p.model_name }}">×</a>
+                  <img src="{{ p.image_url }}" alt="{{ p.brand_name }} {{ p.model_name }}">
+                  <div>
+                    <a href="/phone/{{ p.slug }}" style="font-size:0.88rem;font-weight:800;color:#ffffff;display:block;line-height:1.25;">
+                      {{ p.model_name }}
+                    </a>
+                    <span style="font-size:0.74rem;color:#94a3b8;display:block;margin-bottom:0.2rem;">{{ p.brand_name }}</span>
+                    <span style="font-size:0.84rem;font-weight:800;color:#34d399;">{{ format_pkr(p.price_pkr) }}</span>
+                  </div>
+                </div>
+              </td>
+              {% endfor %}
+
+              {% if compared_phones|length < 4 %}
+              <td style="min-width:210px;">
+                <div class="compare-add-slot-box">
+                  <div style="font-size:0.82rem;font-weight:800;color:#38bdf8;">+ Add Phone</div>
+                  {% set active_slugs = compared_phones | map(attribute='slug') | list %}
+                  <select class="filter-select" style="height:34px;font-size:0.76rem;" onchange="addPhoneToCompareUrl(this.value)">
+                    <option value="">Select phone to add...</option>
+                    {% for item in all_phones_list %}
+                      {% if item.slug not in active_slugs %}
+                        <option value="{{ item.slug }}">{{ item.brand_name }} {{ item.model_name }} ({{ format_pkr(item.price_pkr) }})</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
+                </div>
+              </td>
+              {% endif %}
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr id="cmp-status">
+              <th>Pakistan Price in PKR</th>
+              {% for p in compared_phones %}
+                <td style="font-size:0.98rem;font-weight:800;color:#34d399;">{{ format_pkr(p.price_pkr) }}</td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr>
+              <th>Official Model / Variant</th>
+              {% for p in compared_phones %}
+                <td style="font-size:0.8rem;color:#cbd5e1;">{{ p.official_variant_name }}</td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr id="cmp-display">
+              <th>Display</th>
+              {% for p in compared_phones %}
+                <td>
+                  <strong style="color:#ffffff;">{{ p.display_size }}" {{ p.display_type }}</strong>
+                  <div style="font-size:0.74rem;color:#94a3b8;">{{ p.display_resolution }} • {{ p.refresh_rate or '120Hz' }}</div>
+                </td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr id="cmp-performance">
+              <th>Processor / Chipset</th>
+              {% for p in compared_phones %}
+                <td style="font-weight:700;color:#f8fafc;">{{ p.processor }}</td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr>
+              <th>RAM</th>
+              {% for p in compared_phones %}
+                <td><span class="spec-chip-mini" style="font-size:0.76rem;">{{ p.ram_display }}</span></td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr>
+              <th>Storage</th>
+              {% for p in compared_phones %}
+                <td><span class="spec-chip-mini" style="font-size:0.76rem;">{{ p.storage_display }}</span></td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr id="cmp-camera">
+              <th>Rear &amp; Front Cameras</th>
+              {% for p in compared_phones %}
+                <td>
+                  <div><strong>Rear:</strong> {{ p.rear_camera }}</div>
+                  <div style="font-size:0.76rem;color:#94a3b8;"><strong>Front:</strong> {{ p.front_camera }}</div>
+                </td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr id="cmp-battery">
+              <th>Battery Capacity</th>
+              {% for p in compared_phones %}
+                <td style="font-weight:700;color:#38bdf8;">{{ p.battery_mah }} mAh</td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr>
+              <th>Charging</th>
+              {% for p in compared_phones %}
+                <td>{{ p.charging_specs }}</td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr id="cmp-connectivity">
+              <th>5G Support</th>
+              {% for p in compared_phones %}
+                <td>
+                  {% if p.is_5g %}
+                    <span class="badge-5g">✓ Yes (5G)</span>
+                  {% else %}
+                    <span style="color:#94a3b8;font-size:0.78rem;">4G LTE</span>
+                  {% endif %}
+                </td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr>
+              <th>PTA Status</th>
+              {% for p in compared_phones %}
+                <td style="color:#34d399;font-weight:700;">✓ {{ p.pta_status or 'PTA Approved' }}</td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+
+            <tr>
+              <th>Data Verification Status</th>
+              {% for p in compared_phones %}
+                <td>
+                  {% if not p.is_demo_data %}
+                    <span class="status-pill-mini verified">✓ VERIFIED</span>
+                  {% else %}
+                    <span class="status-pill-mini demo">DEMO / SAMPLE</span>
+                  {% endif %}
+                  <div style="font-size:0.68rem;color:#64748b;margin-top:3px;">Updated {{ format_date_human(p.updated_at) }}</div>
+                </td>
+              {% endfor %}
+              {% if compared_phones|length < 4 %}<td>—</td>{% endif %}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function addPhoneToCompareUrl(newSlug) {
+  if (!newSlug) return;
+  const current = {{ compared_phones | map(attribute='slug') | list | tojson }};
+  if (!current.includes(newSlug)) {
+    current.push(newSlug);
+  }
+  window.location.href = '/compare?phones=' + current.join(',');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% from "macros.html" import render_brand_card, render_brand_logo, render_phone_card %}
+
+{% block content %}
+<section class="section-block" style="padding-top:1.5rem;padding-bottom:2.75rem;">
+  <div class="container">
+
+    <!-- Top Brand Navigation Strip (All 9 Major Brands) -->
+    <div class="section-header-row">
+      <div class="section-title-group">
+        <span class="section-title-bar"></span>
+        <div>
+          <h1 class="section-title" style="font-size:1.45rem;">
+            {% if selected_brand %}
+              {{ selected_brand.name }} Mobile Phones &amp; Prices in Pakistan (PKR)
+            {% else %}
+              Official Mobile Brands in Pakistan
+            {% endif %}
+          </h1>
+          <p class="section-subtitle">
+            {% if selected_brand %}
+              {{ selected_brand.description }} • Showing {{ phones|length }} models in PKR
+            {% else %}
+              Select a manufacturer to browse Pakistani Rupee (PKR) prices, RAM/storage variants, and complete specifications
+            {% endif %}
+          </p>
+        </div>
+      </div>
+      <a href="/phones" class="view-all-btn">Open Phone Finder →</a>
+    </div>
+
+    <!-- 9-Column Brand Selector Row -->
+    <div class="brands-9-grid" style="margin-bottom:1.75rem;">
+      {% for b in brands %}
+        {{ render_brand_card(b, selected_brand.slug if selected_brand else '') }}
+      {% endfor %}
+    </div>
+
+    {% if selected_brand %}
+      <!-- Brand Summary & Quick Filter Bar -->
+      <div class="finder-results-toolbar" style="margin-bottom:1.15rem;">
+        <div style="display:flex;align-items:center;gap:0.85rem;flex-wrap:wrap;">
+          <div style="background:rgba(255,255,255,0.04);padding:0.35rem 0.65rem;border-radius:10px;">
+            {{ render_brand_logo(selected_brand.slug, selected_brand.name) }}
+          </div>
+          <div>
+            <div style="font-size:0.95rem;font-weight:800;color:#ffffff;">{{ selected_brand.name }} Pakistan Lineup ({{ phones|length }} Models)</div>
+            <div style="font-size:0.76rem;color:#94a3b8;">
+              Price Range: <strong style="color:#34d399;">{{ format_pkr(selected_brand.min_price) }}</strong> to <strong style="color:#34d399;">{{ format_pkr(selected_brand.max_price) }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:0.45rem;flex-wrap:wrap;">
+          <a href="/brand/{{ selected_brand.slug }}?sort=latest" class="view-all-btn {% if sort == 'latest' %}active{% endif %}">Latest</a>
+          <a href="/brand/{{ selected_brand.slug }}?sort=price_asc" class="view-all-btn {% if sort == 'price_asc' %}active{% endif %}">Lowest PKR</a>
+          <a href="/brand/{{ selected_brand.slug }}?sort=price_desc" class="view-all-btn {% if sort == 'price_desc' %}active{% endif %}">Flagships</a>
+          <a href="/brand/{{ selected_brand.slug }}?only_5g=1" class="view-all-btn {% if only_5g %}active{% endif %}">5G Only</a>
+        </div>
+      </div>
+
+      <!-- 5-Column Smartphone Grid for Selected Brand -->
+      <div class="phones-5-grid">
+        {% for phone in phones %}
+          {{ render_phone_card(phone) }}
+        {% endfor %}
+      </div>
+    {% else %}
+      <!-- Detailed Brand Directory Cards -->
+      <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:1.1rem;">
+        {% for b in brands %}
+          <div class="detail-top-card" style="margin-bottom:0;padding:1.25rem;display:flex;flex-direction:column;gap:0.75rem;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div style="background:rgba(255,255,255,0.04);padding:0.45rem 0.75rem;border-radius:10px;">
+                {{ render_brand_logo(b.slug, b.name) }}
+              </div>
+              <span class="badge-5g" style="font-size:0.72rem;padding:0.22rem 0.55rem;">{{ b.phone_count }} Models</span>
+            </div>
+            <div>
+              <h3 style="font-size:1.15rem;font-weight:800;color:#ffffff;margin-bottom:0.25rem;">{{ b.name }} Smartphones</h3>
+              <p style="font-size:0.8rem;color:#94a3b8;line-height:1.5;">{{ b.description }}</p>
+            </div>
+            <div style="margin-top:auto;padding-top:0.7rem;border-top:1px solid rgba(148,163,184,0.12);display:flex;align-items:center;justify-content:space-between;">
+              <div style="font-size:0.76rem;color:#cbd5e1;">
+                Starting <strong style="color:#34d399;">{{ format_pkr(b.min_price) }}</strong>
+              </div>
+              <a href="/brand/{{ b.slug }}" class="btn-card-details" style="padding:0.4rem 0.85rem;">Browse {{ b.name }} →</a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}
